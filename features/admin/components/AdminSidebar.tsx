@@ -1,0 +1,86 @@
+"use client";
+
+import React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  ShoppingBag,
+  Layers,
+  Package,
+  Sliders,
+  Settings,
+  ArrowLeft,
+  Database,
+} from "lucide-react";
+
+interface AdminSidebarProps {
+  onCloseMobile?: () => void;
+}
+
+export function AdminSidebar({ onCloseMobile }: AdminSidebarProps) {
+  const pathname = usePathname();
+
+  const links = [
+    { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { label: "Products", href: "/admin/products", icon: ShoppingBag },
+    { label: "Categories", href: "/admin/categories", icon: Layers },
+    { label: "Orders", href: "/admin/orders", icon: Package },
+    { label: "Banners & Hero", href: "/admin/banners", icon: Sliders },
+    { label: "Store Settings", href: "/admin/settings", icon: Settings },
+  ];
+
+  return (
+    <aside className="w-64 bg-[#0c0c0c] text-neutral-300 flex flex-col border-r border-neutral-800 min-h-screen">
+      {/* Brand */}
+      <div className="h-16 md:h-20 border-b border-neutral-800 px-6 flex items-center justify-between">
+        <Link href="/admin" className="flex items-center gap-2">
+          <span className="text-xl font-black text-white tracking-widest font-mono">NEON</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider bg-neutral-800 text-neutral-300 px-1.5 py-0.5 rounded-xs">
+            ADMIN
+          </span>
+        </Link>
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 px-4 py-6 space-y-1.5">
+        {links.map((link) => {
+          const Icon = link.icon;
+          const isActive =
+            pathname === link.href ||
+            (link.href !== "/admin" && pathname?.startsWith(link.href));
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={onCloseMobile}
+              className={`flex items-center gap-3 px-3.5 py-2.5 text-xs font-semibold uppercase tracking-wider rounded-xs transition ${
+                isActive
+                  ? "bg-white text-black font-bold"
+                  : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+              }`}
+            >
+              <Icon className="w-4 h-4 shrink-0" />
+              <span>{link.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Database connection badge & Store link */}
+      <div className="p-4 border-t border-neutral-800 space-y-3">
+        <div className="flex items-center gap-2 px-3 py-2 bg-neutral-900 border border-neutral-800 rounded-xs text-[11px] text-neutral-400">
+          <Database className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+          <span className="truncate">MongoDB Ready</span>
+        </div>
+
+        <Link
+          href="/"
+          className="flex items-center justify-center gap-2 w-full py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold uppercase tracking-wider rounded-xs transition border border-neutral-800"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" /> Back to Store
+        </Link>
+      </div>
+    </aside>
+  );
+}
