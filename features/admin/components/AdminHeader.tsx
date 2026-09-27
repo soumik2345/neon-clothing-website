@@ -13,12 +13,28 @@ export function AdminHeader({ title, onOpenMobileSidebar }: AdminHeaderProps) {
   const [isSeeding, setIsSeeding] = useState(false);
   const [seedMessage, setSeedMessage] = useState<string | null>(null);
   const [dbStatus, setDbStatus] = useState<string>("Checking...");
+  const [dbTooltip, setDbTooltip] = useState<string>("");
+
+  const checkStatus = (retry: boolean = false) => {
+    fetch(`/api/db-status${retry ? "?retry=true" : ""}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.connected) {
+          setDbStatus("MongoDB Connected");
+          setDbTooltip("Live connection to MongoDB active");
+        } else if (data.lastError?.includes("whitelist")) {
+          setDbStatus("Atlas: Add IP Whitelist");
+          setDbTooltip("Go to MongoDB Atlas -> Network Access and add your IP (or 0.0.0.0/0)");
+        } else {
+          setDbStatus("Local Storage Mode");
+          setDbTooltip("Using resilient in-memory storage. All features functional.");
+        }
+      })
+      .catch(() => setDbStatus("Local Storage Mode"));
+  };
 
   useEffect(() => {
-    fetch("/api/db-status")
-      .then((res) => res.json())
-      .then((data) => setDbStatus(data.connected ? "MongoDB Connected" : "Local Storage Mode"))
-      .catch(() => setDbStatus("Local Storage Mode"));
+    checkStatus();
   }, []);
 
   const handleSeedDatabase = async () => {
@@ -64,10 +80,23 @@ export function AdminHeader({ title, onOpenMobileSidebar }: AdminHeaderProps) {
 
       <div className="flex items-center gap-3">
         {/* DB Status indicator */}
-        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-neutral-100 border border-neutral-200 text-[11px] font-medium text-neutral-700 rounded-xs">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+        <button
+          type="button"
+          onClick={() => checkStatus(true)}
+          title={dbTooltip || "Click to refresh DB connection"}
+          className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 transition border border-neutral-200 text-[11px] font-medium text-neutral-700 rounded-xs cursor-pointer"
+        >
+          <span
+            className={`w-2 h-2 rounded-full ${
+              dbStatus.includes("Connected")
+                ? "bg-emerald-500"
+                : dbStatus.includes("Whitelist")
+                ? "bg-amber-500 animate-pulse"
+                : "bg-blue-500"
+            }`}
+          />
           <span>{dbStatus}</span>
-        </div>
+        </button>
 
         {/* 1-Click Seed Button */}
         <button

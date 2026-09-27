@@ -15,7 +15,7 @@ import {
 
 export async function POST() {
   try {
-    const db = await connectDB();
+    const db = await connectDB(true);
     const isMongo = !!db && isMongoConnected();
 
     if (isMongo) {
