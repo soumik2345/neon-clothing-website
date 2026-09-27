@@ -6,6 +6,7 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
+    "seed": "tsx scripts/seed.ts",
     "lint": "eslint"
   },
   "dependencies": {
@@ -28,6 +29,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.6",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }
