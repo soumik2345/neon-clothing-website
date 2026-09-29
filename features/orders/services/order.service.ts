@@ -2,6 +2,19 @@ import { connectDB } from "@/lib/db/mongodb";
 import { Order, IOrder } from "@/lib/db/models/Order";
 import { OrderType } from "../types/order.types";
 
+function toPlainOrder(doc: unknown): OrderType {
+  const plain = JSON.parse(JSON.stringify(doc));
+  return {
+    ...plain,
+    _id: String(plain._id),
+    id: String(plain._id),
+    items: (plain.items || []).map((item: Record<string, unknown>) => ({
+      ...item,
+      _id: item._id ? String(item._id) : undefined,
+    })),
+  } as OrderType;
+}
+
 export async function getOrders(filter?: { email?: string }): Promise<OrderType[]> {
   await connectDB();
 
@@ -11,14 +24,7 @@ export async function getOrders(filter?: { email?: string }): Promise<OrderType[
   }
 
   const orders = await Order.find(query).sort({ createdAt: -1 }).lean();
-  return orders.map((doc: unknown) => {
-    const o = doc as IOrder & { _id: unknown };
-    return {
-      ...o,
-      _id: String(o._id),
-      id: String(o._id),
-    } as OrderType;
-  });
+  return orders.map(toPlainOrder);
 }
 
 export async function getOrderById(idOrNumber: string): Promise<OrderType | null> {
@@ -35,12 +41,7 @@ export async function getOrderById(idOrNumber: string): Promise<OrderType | null
 
   if (!doc) return null;
 
-  const o = doc as IOrder & { _id: unknown };
-  return {
-    ...o,
-    _id: String(o._id),
-    id: String(o._id),
-  } as OrderType;
+  return toPlainOrder(doc);
 }
 
 export async function createOrder(data: {
@@ -76,11 +77,7 @@ export async function createOrder(data: {
   };
 
   const created = await Order.create(orderPayload);
-  return {
-    ...created.toObject(),
-    _id: String(created._id),
-    id: String(created._id),
-  } as OrderType;
+  return toPlainOrder(created.toObject());
 }
 
 export async function updateOrderStatus(
@@ -96,10 +93,5 @@ export async function updateOrderStatus(
   const updated = await Order.findByIdAndUpdate(id, updateData, { new: true }).lean();
   if (!updated) return null;
 
-  const o = updated as IOrder & { _id: unknown };
-  return {
-    ...o,
-    _id: String(o._id),
-    id: String(o._id),
-  } as OrderType;
+  return toPlainOrder(updated);
 }

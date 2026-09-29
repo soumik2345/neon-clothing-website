@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight } from "lucide-react";
 import { useCart } from "../context/CartContext";
-import { formatPrice } from "@/lib/utils/utils";
+import { useSettings } from "@/features/settings/context/SettingsContext";
 
 export function CartDrawer() {
   const {
@@ -16,10 +16,10 @@ export function CartDrawer() {
     removeFromCart,
     subtotal,
   } = useCart();
+  const { formatPrice, freeShippingThreshold } = useSettings();
 
   if (!isCartOpen) return null;
 
-  const freeShippingThreshold = 1499;
   const difference = freeShippingThreshold - subtotal;
   const progressPercent = Math.min(100, Math.round((subtotal / freeShippingThreshold) * 100));
 

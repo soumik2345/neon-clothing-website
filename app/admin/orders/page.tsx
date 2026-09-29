@@ -5,10 +5,11 @@ import Image from "next/image";
 import { Package, Search, CheckCircle, Clock, Truck, AlertCircle, ChevronLeft, ChevronRight, Printer } from "lucide-react";
 import { AdminHeader } from "@/features/admin/components/AdminHeader";
 import { OrderType } from "@/features/orders/types/order.types";
-import { formatPrice } from "@/lib/utils/utils";
+import { useSettings } from "@/features/settings/context/SettingsContext";
 import { OrderInvoiceMemo } from "@/components/orders/OrderInvoiceMemo";
 
 export default function AdminOrdersPage() {
+  const { formatPrice } = useSettings();
   const [orders, setOrders] = useState<OrderType[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState("all");

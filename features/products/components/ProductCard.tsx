@@ -5,19 +5,25 @@ import Image from "next/image";
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { ProductType } from "../types/product.types";
-import { formatPrice } from "@/lib/utils/utils";
+import { formatPrice as baseFormatPrice } from "@/lib/utils/utils";
 import { useCart } from "@/features/cart/context/CartContext";
+import { useSettings } from "@/features/settings/context/SettingsContext";
 
 interface ProductCardProps {
   product: ProductType;
+  currency?: string;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, currency }: ProductCardProps) {
   const { addToCart } = useCart();
+  const { formatPrice: contextFormatPrice } = useSettings();
   const [isAdding, setIsAdding] = useState(false);
   const [selectedSize] = useState<string>(
     product.sizes && product.sizes.length > 0 ? product.sizes[0] : "M"
   );
+
+  const displayPrice = (val: number) =>
+    currency ? baseFormatPrice(val, currency) : contextFormatPrice(val);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -44,18 +50,37 @@ export function ProductCard({ product }: ProductCardProps) {
     <div className="group flex flex-col justify-between bg-white text-left transition duration-200">
       <Link href={`/products/${product.slug}`} className="block">
         {/* Product Image Frame */}
-        <div className="relative aspect-[4/5] w-full bg-[#f4f4f4] overflow-hidden">
+        <div className="relative aspect-[4/5] w-full bg-[#f4f4f4] overflow-hidden rounded-xs">
           <Image
-            src={product.images[0]}
+            src={product.images[0] || "/placeholder.jpg"}
             alt={product.title}
             fill
-            className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+            className={`object-cover object-center transition-all duration-500 ${
+              product.images[1] ? "group-hover:opacity-0" : "group-hover:scale-105"
+            }`}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
           />
 
+          {product.images[1] && (
+            <Image
+              src={product.images[1]}
+              alt={`${product.title} alternate view`}
+              fill
+              className="object-cover object-center transition-all duration-500 opacity-0 group-hover:opacity-100 group-hover:scale-105"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
+            />
+          )}
+
+          {/* Multiple Photos Badge */}
+          {product.images.length > 1 && (
+            <div className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-xs text-white text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-2xs opacity-80 group-hover:opacity-100 transition">
+              +{product.images.length - 1} photos
+            </div>
+          )}
+
           {/* Condition or Discount Tag */}
           {typeof product.originalPrice === "number" && product.originalPrice > product.price ? (
-            <span className="absolute top-2 left-2 bg-black text-white text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider">
+            <span className="absolute top-2 left-2 bg-black text-white text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider rounded-2xs">
               SAVE {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
             </span>
           ) : null}
@@ -69,11 +94,11 @@ export function ProductCard({ product }: ProductCardProps) {
 
           <div className="flex items-center gap-2">
             <span className="text-xs sm:text-sm font-bold text-neutral-900">
-              {formatPrice(product.price)}
+              {displayPrice(product.price)}
             </span>
             {typeof product.originalPrice === "number" && product.originalPrice > product.price ? (
               <span className="text-[11px] text-neutral-400 line-through">
-                {formatPrice(product.originalPrice)}
+                {displayPrice(product.originalPrice)}
               </span>
             ) : null}
           </div>

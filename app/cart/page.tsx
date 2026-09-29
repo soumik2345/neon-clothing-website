@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { useCart } from "@/features/cart/context/CartContext";
-import { formatPrice } from "@/lib/utils/utils";
+import { useSettings } from "@/features/settings/context/SettingsContext";
 import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, MapPin, CheckCircle2, User, UserCheck } from "lucide-react";
 
 interface UserProfile {
@@ -22,6 +22,7 @@ interface UserProfile {
 
 export default function CartPage() {
   const { cart, updateQuantity, removeFromCart, subtotal, clearCart } = useCart();
+  const { formatPrice, freeShippingThreshold } = useSettings();
   const [couponCode, setCouponCode] = useState("");
   const [discount, setDiscount] = useState(0);
   const [couponApplied, setCouponApplied] = useState(false);
@@ -42,7 +43,6 @@ export default function CartPage() {
     checkAuth();
   }, []);
 
-  const freeShippingThreshold = 1499;
   const difference = freeShippingThreshold - subtotal;
   const shippingFee = subtotal >= freeShippingThreshold || subtotal === 0 ? 0 : 99;
   const finalTotal = Math.max(0, subtotal - discount + shippingFee);

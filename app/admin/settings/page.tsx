@@ -43,6 +43,9 @@ export default function AdminSettingsPage() {
       const json = await res.json();
       if (json.success) {
         setSavedSuccess(true);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("neon-settings-updated"));
+        }
         setTimeout(() => setSavedSuccess(false), 3000);
       }
     } catch (err) {

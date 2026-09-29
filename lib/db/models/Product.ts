@@ -8,6 +8,8 @@ export interface IProduct extends Document {
   category: string;
   description: string;
   condition: string;
+  fabricSilhouette?: string;
+  careGuide?: string;
   images: string[];
   sizes: string[];
   stock: number;
@@ -27,6 +29,8 @@ const ProductSchema = new Schema<IProduct>(
     category: { type: String, required: true, lowercase: true, trim: true },
     description: { type: String, required: true },
     condition: { type: String, default: "Grade A Curated Vintage" },
+    fabricSilhouette: { type: String, default: "" },
+    careGuide: { type: String, default: "" },
     images: [{ type: String, required: true }],
     sizes: [{ type: String, default: ["S", "M", "L", "XL"] }],
     stock: { type: Number, required: true, default: 10, min: 0 },

@@ -12,6 +12,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { CategoryType } from "@/features/categories/types/category.types";
+import { useSettings } from "@/features/settings/context/SettingsContext";
 
 interface ShopFiltersProps {
   categories: CategoryType[];
@@ -22,14 +23,6 @@ interface ShopFiltersProps {
   currentMinPrice?: string;
   currentMaxPrice?: string;
 }
-
-const PRICE_RANGES = [
-  { label: "All Prices", min: undefined, max: undefined },
-  { label: "Under ₹999", min: 0, max: 999 },
-  { label: "₹1,000 - ₹1,999", min: 1000, max: 1999 },
-  { label: "₹2,000 - ₹2,999", min: 2000, max: 2999 },
-  { label: "₹3,000+", min: 3000, max: undefined },
-];
 
 const SORT_OPTIONS = [
   { label: "Newest Drops", value: "newest" },
@@ -51,6 +44,15 @@ export function ShopFilters({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  const { formatPrice } = useSettings();
+
+  const priceRanges = React.useMemo(() => [
+    { label: "All Prices", min: undefined, max: undefined },
+    { label: `Under ${formatPrice(999)}`, min: 0, max: 999 },
+    { label: `${formatPrice(1000)} - ${formatPrice(1999)}`, min: 1000, max: 1999 },
+    { label: `${formatPrice(2000)} - ${formatPrice(2999)}`, min: 2000, max: 2999 },
+    { label: `${formatPrice(3000)}+`, min: 3000, max: undefined },
+  ], [formatPrice]);
 
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [searchInput, setSearchInput] = useState(currentSearch);
@@ -107,7 +109,7 @@ export function ShopFilters({
     (currentSort && currentSort !== "newest" ? 1 : 0);
 
   // Find active price range label
-  const activePriceRange = PRICE_RANGES.find((r) => {
+  const activePriceRange = priceRanges.find((r) => {
     if (r.min === undefined && r.max === undefined) {
       return currentMinPrice === undefined && currentMaxPrice === undefined;
     }
@@ -170,12 +172,12 @@ export function ShopFilters({
             <select
               value={activePriceRange.label}
               onChange={(e) => {
-                const target = PRICE_RANGES.find((r) => r.label === e.target.value);
+                const target = priceRanges.find((r) => r.label === e.target.value);
                 if (target) handlePriceSelect(target.min, target.max);
               }}
               className="py-2 px-3 bg-neutral-50 border border-neutral-200 rounded-xs text-xs font-semibold text-neutral-800 outline-none focus:border-black cursor-pointer uppercase"
             >
-              {PRICE_RANGES.map((r) => (
+              {priceRanges.map((r) => (
                 <option key={r.label} value={r.label}>
                   {r.label}
                 </option>
@@ -389,7 +391,7 @@ export function ShopFilters({
                   Price Range
                 </label>
                 <div className="space-y-1.5">
-                  {PRICE_RANGES.map((r) => {
+                  {priceRanges.map((r) => {
                     const isSelected = activePriceRange.label === r.label;
                     return (
                       <button

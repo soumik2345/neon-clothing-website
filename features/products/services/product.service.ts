@@ -79,18 +79,8 @@ export async function getProductBySlug(slugOrId: string): Promise<ProductType | 
   } as ProductType;
 }
 
-export async function getProductById(id: string): Promise<ProductType | null> {
-  await connectDB();
-
-  const doc = await Product.findById(id).lean();
-  if (!doc) return null;
-
-  const p = doc as IProduct & { _id: unknown };
-  return {
-    ...p,
-    _id: String(p._id),
-    id: String(p._id),
-  } as ProductType;
+export async function getProductById(idOrSlug: string): Promise<ProductType | null> {
+  return getProductBySlug(idOrSlug);
 }
 
 export async function createProduct(data: Partial<ProductType>): Promise<ProductType> {

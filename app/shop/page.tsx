@@ -116,7 +116,11 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
             {paginatedProducts.map((product) => (
-              <ProductCard key={product._id || product.slug} product={product} />
+              <ProductCard
+                key={product._id || product.slug}
+                product={product}
+                currency={settings.currency}
+              />
             ))}
           </div>
         )}

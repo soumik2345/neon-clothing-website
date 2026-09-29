@@ -2,14 +2,15 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { Plus, Edit2, Trash2, Search, X, Check, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Edit2, Trash2, Search, X, Check, ArrowUpDown, ChevronLeft, ChevronRight, Images } from "lucide-react";
 import { AdminHeader } from "@/features/admin/components/AdminHeader";
 import { ProductType } from "@/features/products/types/product.types";
 import { CategoryType } from "@/features/categories/types/category.types";
-import { formatPrice } from "@/lib/utils/utils";
-import { ImageUploadInput } from "@/components/ui/ImageUploadInput";
+import { useSettings } from "@/features/settings/context/SettingsContext";
+import { MultiImageUploadInput } from "@/components/ui/MultiImageUploadInput";
 
 export default function AdminProductsPage() {
+  const { formatPrice, currency } = useSettings();
   const [products, setProducts] = useState<ProductType[]>([]);
   const [categories, setCategories] = useState<CategoryType[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +22,22 @@ export default function AdminProductsPage() {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductType | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    title: string;
+    slug: string;
+    price: number;
+    originalPrice: number;
+    category: string;
+    description: string;
+    condition: string;
+    fabricSilhouette: string;
+    careGuide: string;
+    images: string[];
+    sizes: string;
+    stock: number;
+    isTrending: boolean;
+    isFeatured: boolean;
+  }>({
     title: "",
     slug: "",
     price: 0,
@@ -29,7 +45,9 @@ export default function AdminProductsPage() {
     category: "",
     description: "",
     condition: "",
-    image: "",
+    fabricSilhouette: "",
+    careGuide: "",
+    images: [],
     sizes: "",
     stock: 1,
     isTrending: false,
@@ -68,7 +86,9 @@ export default function AdminProductsPage() {
       category: categories[0]?.slug || "",
       description: "",
       condition: "",
-      image: "",
+      fabricSilhouette: "",
+      careGuide: "",
+      images: [],
       sizes: "",
       stock: 1,
       isTrending: false,
@@ -87,7 +107,9 @@ export default function AdminProductsPage() {
       category: p.category,
       description: p.description,
       condition: p.condition || "",
-      image: p.images[0] || "",
+      fabricSilhouette: p.fabricSilhouette || "",
+      careGuide: p.careGuide || "",
+      images: p.images && p.images.length > 0 ? [...p.images] : [],
       sizes: p.sizes ? p.sizes.join(", ") : "",
       stock: p.stock,
       isTrending: p.isTrending,
@@ -98,6 +120,12 @@ export default function AdminProductsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (formData.images.length === 0) {
+      alert("Please upload or add at least one product image.");
+      return;
+    }
+
     const payload = {
       title: formData.title,
       slug:
@@ -108,7 +136,9 @@ export default function AdminProductsPage() {
       category: formData.category.toLowerCase(),
       description: formData.description,
       condition: formData.condition,
-      images: [formData.image],
+      fabricSilhouette: formData.fabricSilhouette,
+      careGuide: formData.careGuide,
+      images: formData.images,
       sizes: formData.sizes.split(",").map((s) => s.trim()).filter(Boolean),
       stock: Number(formData.stock),
       isTrending: formData.isTrending,
@@ -255,14 +285,25 @@ export default function AdminProductsPage() {
                     <tr key={p._id || p.id} className="hover:bg-neutral-50/80 transition">
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
-                          <div className="relative w-12 h-14 bg-neutral-100 shrink-0 overflow-hidden rounded-xs">
-                            <Image
-                              src={p.images[0]}
-                              alt={p.title}
-                              fill
-                              className="object-cover"
-                              sizes="48px"
-                            />
+                          <div className="relative w-12 h-14 bg-neutral-100 shrink-0 overflow-hidden rounded-xs border border-neutral-200">
+                            {p.images[0] ? (
+                              <Image
+                                src={p.images[0]}
+                                alt={p.title}
+                                fill
+                                className="object-cover"
+                                sizes="48px"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-neutral-400">
+                                <Images className="w-4 h-4" />
+                              </div>
+                            )}
+                            {p.images.length > 1 && (
+                              <span className="absolute bottom-0.5 right-0.5 bg-black/80 text-white text-[9px] font-mono px-1 rounded-2xs font-bold leading-none py-0.5">
+                                +{p.images.length - 1}
+                              </span>
+                            )}
                           </div>
                           <div>
                             <p className="font-bold text-black uppercase tracking-tight line-clamp-1">
@@ -448,7 +489,7 @@ export default function AdminProductsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block uppercase font-bold text-neutral-700 mb-1">
-                    Price (₹) *
+                    Price ({currency}) *
                   </label>
                   <input
                     type="number"
@@ -461,7 +502,7 @@ export default function AdminProductsPage() {
                 </div>
                 <div>
                   <label className="block uppercase font-bold text-neutral-700 mb-1">
-                    Original Price (₹)
+                    Original Price ({currency})
                   </label>
                   <input
                     type="number"
@@ -509,13 +550,12 @@ export default function AdminProductsPage() {
               </div>
 
               <div>
-                <ImageUploadInput
-                  label="Product Image *"
-                  value={formData.image}
-                  onChange={(url) => setFormData({ ...formData, image: url })}
-                  description="Upload file or enter direct URL"
-                  placeholder="Paste product image URL"
-                  aspectRatioClass="aspect-[4/5]"
+                <MultiImageUploadInput
+                  label="Product Photo Gallery *"
+                  values={formData.images}
+                  onChange={(urls) => setFormData({ ...formData, images: urls })}
+                  description="Upload multiple photos or paste direct URLs. First image serves as catalog cover."
+                  maxImages={8}
                 />
               </div>
 
@@ -557,6 +597,43 @@ export default function AdminProductsPage() {
                   placeholder="Enter detailed description of the item"
                   className="w-full p-2.5 border border-neutral-300 rounded-xs outline-none focus:border-black"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block uppercase font-bold text-neutral-700 mb-1">
+                    Fabric &amp; Silhouette
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={formData.fabricSilhouette}
+                    onChange={(e) =>
+                      setFormData({ ...formData, fabricSilhouette: e.target.value })
+                    }
+                    placeholder="Enter fabric specifications (one per line, e.g. 100% French Terry Cotton)"
+                    className="w-full p-2.5 border border-neutral-300 rounded-xs outline-none focus:border-black font-mono text-xs"
+                  />
+                  <p className="text-[10px] text-neutral-400 mt-1">
+                    Tip: Enter each specification on a new line.
+                  </p>
+                </div>
+                <div>
+                  <label className="block uppercase font-bold text-neutral-700 mb-1">
+                    Care &amp; Wash Guide
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={formData.careGuide}
+                    onChange={(e) =>
+                      setFormData({ ...formData, careGuide: e.target.value })
+                    }
+                    placeholder="Enter care instructions (one per line, e.g. Machine wash cold on gentle cycle)"
+                    className="w-full p-2.5 border border-neutral-300 rounded-xs outline-none focus:border-black font-mono text-xs"
+                  />
+                  <p className="text-[10px] text-neutral-400 mt-1">
+                    Tip: Enter each care instruction on a new line.
+                  </p>
+                </div>
               </div>
 
               <div className="flex items-center gap-6 pt-2">

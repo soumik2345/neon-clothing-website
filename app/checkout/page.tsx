@@ -7,12 +7,13 @@ import { useRouter } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { useCart } from "@/features/cart/context/CartContext";
-import { formatPrice } from "@/lib/utils/utils";
+import { useSettings } from "@/features/settings/context/SettingsContext";
 import { ShieldCheck, Truck, ArrowLeft, CheckCircle2 } from "lucide-react";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, subtotal, clearCart } = useCart();
+  const { formatPrice, freeShippingThreshold } = useSettings();
   const [loading, setLoading] = useState(false);
   const [userProfile, setUserProfile] = useState<{
     name?: string;
@@ -56,7 +57,7 @@ export default function CheckoutPage() {
     loadUserProfile();
   }, []);
 
-  const shippingFee = subtotal >= 1499 || subtotal === 0 ? 0 : 99;
+  const shippingFee = subtotal >= freeShippingThreshold || subtotal === 0 ? 0 : 99;
   const total = subtotal + shippingFee;
 
   const handlePlaceOrder = async (e: React.FormEvent) => {

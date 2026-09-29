@@ -8,6 +8,8 @@ export interface ProductType {
   category: string;
   description: string;
   condition: string;
+  fabricSilhouette?: string;
+  careGuide?: string;
   images: string[];
   sizes: string[];
   stock: number;

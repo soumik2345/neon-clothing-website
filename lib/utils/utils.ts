@@ -6,5 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatPrice(price: number, currency: string = "₹"): string {
-  return `${currency}${price.toLocaleString("en-IN")}`;
+  const sym = (currency || "₹").trim();
+  const isTextCurrency = /^[a-zA-Z.]+$/.test(sym);
+  return `${sym}${isTextCurrency ? " " : ""}${(price || 0).toLocaleString("en-IN")}`;
 }

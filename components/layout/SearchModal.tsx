@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Search, X, ArrowRight } from "lucide-react";
 import { ProductType } from "@/features/products/types/product.types";
-import { formatPrice } from "@/lib/utils/utils";
+import { useSettings } from "@/features/settings/context/SettingsContext";
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -13,6 +13,7 @@ interface SearchModalProps {
 }
 
 export function SearchModal({ isOpen, onClose }: SearchModalProps) {
+  const { formatPrice } = useSettings();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ProductType[]>([]);
   const [loading, setLoading] = useState(false);

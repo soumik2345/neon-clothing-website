@@ -59,7 +59,7 @@ export function CategoryGrid({
   useEffect(() => {
     if (!emblaApi || categories.length <= 2) return;
 
-    let timer: NodeJS.Timeout | null = null;
+    let timer: ReturnType<typeof setInterval> | null = null;
 
     const startTimer = () => {
       if (timer) clearInterval(timer);

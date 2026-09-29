@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { formatPrice } from "@/lib/utils/utils";
+import { useSettings } from "@/features/settings/context/SettingsContext";
 import {
   User as UserIcon,
   Package,
@@ -64,6 +64,7 @@ interface Order {
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { formatPrice } = useSettings();
 
   const [user, setUser] = useState<UserProfile | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);

@@ -14,17 +14,20 @@ import { AdminHeader } from "@/features/admin/components/AdminHeader";
 import { getOrders } from "@/features/orders/services/order.service";
 import { getProducts } from "@/features/products/services/product.service";
 import { getCategories } from "@/features/categories/services/category.service";
+import { getSettings } from "@/features/settings/services/settings.service";
 import { formatPrice } from "@/lib/utils/utils";
 
 export const revalidate = 0;
 
 export default async function AdminDashboardPage() {
-  const [orders, products, categories] = await Promise.all([
+  const [orders, products, categories, settings] = await Promise.all([
     getOrders(),
     getProducts(),
     getCategories(),
+    getSettings(),
   ]);
 
+  const currency = settings.currency || "₹";
   const totalRevenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
   const totalOrders = orders.length;
   const totalProducts = products.length;
@@ -48,7 +51,7 @@ export default async function AdminDashboardPage() {
               </div>
             </div>
             <p className="text-2xl font-black text-black mt-3 font-mono">
-              {formatPrice(totalRevenue)}
+              {formatPrice(totalRevenue, currency)}
             </p>
             <p className="text-[11px] text-emerald-600 font-medium mt-1">
               Active Store Sales
@@ -190,7 +193,7 @@ export default async function AdminDashboardPage() {
                       {order.items.length} item(s)
                     </td>
                     <td className="py-3.5 px-4 font-bold text-neutral-900 font-mono">
-                      {formatPrice(order.total)}
+                      {formatPrice(order.total, currency)}
                     </td>
                     <td className="py-3.5 px-4">
                       <span className="uppercase text-[10px] font-bold px-2 py-0.5 bg-neutral-100 text-neutral-700 rounded-xs">

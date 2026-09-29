@@ -2,7 +2,7 @@
 
 import React, { useRef } from "react";
 import { Printer, X } from "lucide-react";
-import { formatPrice } from "@/lib/utils/utils";
+import { useSettings } from "@/features/settings/context/SettingsContext";
 import { OrderType } from "@/features/orders/types/order.types";
 
 interface OrderInvoiceMemoProps {
@@ -19,12 +19,18 @@ export function OrderInvoiceMemo({
   order,
   isOpen,
   onClose,
-  storeName = "NEON STREETWEAR",
-  storeAddress = "Streetwear Vault, Fashion District, Mumbai, India",
-  storePhone = "+91 98765 43210",
-  storeEmail = "support@neonthrift.com",
+  storeName,
+  storeAddress,
+  storePhone,
+  storeEmail,
 }: OrderInvoiceMemoProps) {
+  const { formatPrice, settings } = useSettings();
   const memoRef = useRef<HTMLDivElement>(null);
+
+  const activeStoreName = storeName || settings.storeName || "NEON STREETWEAR";
+  const activeStoreAddress = storeAddress || settings.address || "Streetwear Vault, Fashion District";
+  const activeStorePhone = storePhone || settings.supportPhone || "+91 98765 43210";
+  const activeStoreEmail = storeEmail || settings.supportEmail || "support@neonthrift.com";
 
   if (!isOpen) return null;
 
@@ -81,16 +87,16 @@ export function OrderInvoiceMemo({
           <div className="flex flex-col sm:flex-row items-start justify-between border-b-2 border-black pb-5 gap-4">
             <div>
               <h1 className="text-2xl font-black font-mono tracking-tight uppercase text-black">
-                {storeName}
+                {activeStoreName}
               </h1>
               <p className="text-[11px] uppercase tracking-widest text-neutral-500 font-mono">
                 Archival &amp; Vintage Curated Drops
               </p>
               <p className="text-xs text-neutral-600 mt-2 max-w-xs leading-tight">
-                {storeAddress}
+                {activeStoreAddress}
               </p>
               <p className="text-xs text-neutral-600 font-mono">
-                Tel: {storePhone} • Email: {storeEmail}
+                Tel: {activeStorePhone} • Email: {activeStoreEmail}
               </p>
             </div>
 

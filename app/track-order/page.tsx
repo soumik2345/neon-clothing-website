@@ -7,9 +7,10 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Search, Package, ArrowRight, CheckCircle2, Clock, Truck, ShieldCheck, ExternalLink } from "lucide-react";
 import { OrderType } from "@/features/orders/types/order.types";
-import { formatPrice } from "@/lib/utils/utils";
+import { useSettings } from "@/features/settings/context/SettingsContext";
 
 function TrackOrderContent() {
+  const { formatPrice } = useSettings();
   const searchParams = useSearchParams();
   const queryOrderId = searchParams.get("orderId") || searchParams.get("id") || "";
 

@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { getOrderById } from "@/features/orders/services/order.service";
+import { getSettings } from "@/features/settings/services/settings.service";
 import { formatPrice } from "@/lib/utils/utils";
 import { CheckCircle2, Package, Truck, ArrowRight, ArrowLeft, Clock, ShieldCheck, ExternalLink } from "lucide-react";
 import { OrderPrintButton } from "@/components/orders/OrderPrintButton";
@@ -17,11 +18,17 @@ interface OrderPageProps {
 
 export default async function OrderDetailsPage({ params }: OrderPageProps) {
   const { id } = await params;
-  const order = await getOrderById(id);
+  const [order, settings] = await Promise.all([
+    getOrderById(id),
+    getSettings(),
+  ]);
 
   if (!order) {
     notFound();
   }
+
+  const plainOrder = JSON.parse(JSON.stringify(order));
+  const currency = settings?.currency || "₹";
 
   const getStatusText = (status: string) => {
     switch (status) {
@@ -55,7 +62,7 @@ export default async function OrderDetailsPage({ params }: OrderPageProps) {
           </Link>
 
           <div className="flex items-center gap-3">
-            <OrderPrintButton order={order} variant="outline" />
+            <OrderPrintButton order={plainOrder} variant="outline" />
 
             <Link
               href={`/track-order?orderId=${encodeURIComponent(order.orderNumber)}`}
@@ -164,12 +171,12 @@ export default async function OrderDetailsPage({ params }: OrderPageProps) {
                       <span className="font-bold text-black">{item.quantity}</span>
                     </p>
                     <p className="text-[11px] text-neutral-500 font-mono mt-0.5">
-                      Unit Price: {formatPrice(item.price)}
+                      Unit Price: {formatPrice(item.price, currency)}
                     </p>
                   </div>
                 </div>
                 <span className="font-mono font-bold text-sm text-black shrink-0">
-                  {formatPrice(item.price * item.quantity)}
+                  {formatPrice(item.price * item.quantity, currency)}
                 </span>
               </div>
             ))}
@@ -179,17 +186,17 @@ export default async function OrderDetailsPage({ params }: OrderPageProps) {
           <div className="border-t border-neutral-200 pt-4 space-y-2 text-xs">
             <div className="flex justify-between text-neutral-600">
               <span>Subtotal</span>
-              <span className="font-mono font-bold text-black">{formatPrice(order.subtotal)}</span>
+              <span className="font-mono font-bold text-black">{formatPrice(order.subtotal, currency)}</span>
             </div>
             <div className="flex justify-between text-neutral-600">
               <span>Shipping Charge</span>
               <span className="font-mono font-bold text-black">
-                {order.shippingFee === 0 ? "FREE" : formatPrice(order.shippingFee)}
+                {order.shippingFee === 0 ? "FREE" : formatPrice(order.shippingFee, currency)}
               </span>
             </div>
             <div className="border-t border-neutral-200 pt-3 flex justify-between items-center text-sm font-bold text-black">
               <span>Total Amount</span>
-              <span className="text-xl font-black font-mono">{formatPrice(order.total)}</span>
+              <span className="text-xl font-black font-mono">{formatPrice(order.total, currency)}</span>
             </div>
           </div>
         </div>

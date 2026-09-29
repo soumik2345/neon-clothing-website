@@ -14,36 +14,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try {
       const saved = localStorage.getItem("neon_cart");
       if (saved) {
-        setCart(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        // Filter out legacy demo items if any
+        const cleaned = Array.isArray(parsed)
+          ? parsed.filter(
+              (item: CartItemType) =>
+                item.productId !== "prod_1" && item.productId !== "prod_2"
+            )
+          : [];
+        setCart(cleaned);
       } else {
-        // Pre-populate with 2 items matching the screenshot cart counter (2 items)
-        setCart([
-          {
-            productId: "prod_1",
-            title: "Dark Dreams Hoodie",
-            slug: "dark-dreams-hoodie",
-            price: 1699,
-            originalPrice: 2499,
-            quantity: 1,
-            size: "L",
-            image: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=800&q=80",
-            category: "hoodies",
-          },
-          {
-            productId: "prod_2",
-            title: "Chaos Club Tee",
-            slug: "chaos-club-tee",
-            price: 899,
-            originalPrice: 1299,
-            quantity: 1,
-            size: "M",
-            image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=800&q=80",
-            category: "t-shirts",
-          },
-        ]);
+        setCart([]);
       }
     } catch (e) {
       console.error("Failed to load cart from localStorage", e);
+      setCart([]);
     } finally {
       setIsLoaded(true);
     }

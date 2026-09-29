@@ -7,6 +7,7 @@ import { Search, User, ShoppingBag, Menu, X, ShieldCheck, Package, LogOut, UserC
 import { AnnouncementBar } from "./AnnouncementBar";
 import { SearchModal } from "./SearchModal";
 import { useCart } from "@/features/cart/context/CartContext";
+import { useSettings } from "@/features/settings/context/SettingsContext";
 
 interface HeaderProps {
   announcementText?: string;
@@ -20,12 +21,20 @@ interface AuthUserState {
 }
 
 export function Header({
-  announcementText = "FREE SHIPPING ON ALL ORDERS ABOVE ₹1499",
-  storeName = "NEON",
+  announcementText,
+  storeName,
 }: HeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { totalItems, setIsCartOpen } = useCart();
+  const { settings, formatPrice, freeShippingThreshold } = useSettings();
+
+  const displayStoreName = storeName || settings?.storeName || "NEON";
+  const defaultAnnouncement = `FREE SHIPPING ON ALL ORDERS ABOVE ${formatPrice(freeShippingThreshold)}`;
+  const resolvedAnnouncement =
+    announcementText && !announcementText.includes("₹1499")
+      ? announcementText
+      : defaultAnnouncement;
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -101,13 +110,13 @@ export function Header({
 
   return (
     <>
-      <AnnouncementBar text={announcementText} />
+      <AnnouncementBar text={resolvedAnnouncement} />
 
       <header className="sticky top-0 z-40 bg-white border-b border-neutral-200/80 transition-shadow duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="h-14 sm:h-16 md:h-20 flex items-center justify-between">
+          <div className="relative h-14 sm:h-16 md:h-20 flex items-center justify-between">
             {/* Mobile menu button */}
-            <div className="flex items-center md:hidden">
+            <div className="flex items-center md:hidden z-10">
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(true)}
@@ -118,11 +127,11 @@ export function Header({
               </button>
             </div>
 
-            {/* Brand Logo */}
-            <div className="flex-1 md:flex-none text-center md:text-left px-2">
+            {/* Brand Logo - Centered on Mobile, normal flow on Desktop */}
+            <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 md:flex-none text-center md:text-left z-0 pointer-events-auto">
               <Link href="/" className="inline-block group">
                 <span className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-black uppercase font-mono">
-                  {storeName}
+                  {displayStoreName}
                 </span>
               </Link>
             </div>
@@ -148,7 +157,7 @@ export function Header({
             </nav>
 
             {/* Right Action Icons: Search, User, Cart */}
-            <div className="flex items-center space-x-1 sm:space-x-3 md:space-x-5">
+            <div className="flex items-center space-x-1 sm:space-x-3 md:space-x-5 z-10">
               {/* Search Icon */}
               <button
                 type="button"
@@ -174,7 +183,7 @@ export function Header({
                     </span>
                   )}
                   {currentUser?.role === "admin" && (
-                    <span className="text-[9px] font-mono font-bold uppercase tracking-wider bg-black text-white px-1.5 py-0.5 rounded-xs">
+                    <span className="hidden md:inline-block text-[9px] font-mono font-bold uppercase tracking-wider bg-black text-white px-1.5 py-0.5 rounded-xs">
                       ADMIN
                     </span>
                   )}
@@ -316,7 +325,7 @@ export function Header({
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="text-xl font-black uppercase font-mono tracking-tight text-black"
               >
-                {storeName}
+                {displayStoreName}
               </Link>
               <button
                 type="button"
