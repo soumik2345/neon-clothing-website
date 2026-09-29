@@ -19,6 +19,7 @@ export interface ProductType {
 }
 
 export interface ProductFilterParams {
+  ids?: string[];
   category?: string;
   minPrice?: number;
   maxPrice?: number;

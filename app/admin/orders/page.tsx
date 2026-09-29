@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { Package, Search, CheckCircle, Clock, Truck, AlertCircle } from "lucide-react";
+import { Package, Search, CheckCircle, Clock, Truck, AlertCircle, ChevronLeft, ChevronRight, Printer } from "lucide-react";
 import { AdminHeader } from "@/features/admin/components/AdminHeader";
 import { OrderType } from "@/features/orders/types/order.types";
 import { formatPrice } from "@/lib/utils/utils";
+import { OrderInvoiceMemo } from "@/components/orders/OrderInvoiceMemo";
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<OrderType[]>([]);
@@ -13,6 +14,9 @@ export default function AdminOrdersPage() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [search, setSearch] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<OrderType | null>(null);
+  const [isPrintMemoOpen, setIsPrintMemoOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -56,6 +60,10 @@ export default function AdminOrdersPage() {
     }
   };
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterStatus, search]);
+
   const filteredOrders = orders.filter((o) => {
     const matchesFilter = filterStatus === "all" || o.status === filterStatus;
     const matchesSearch =
@@ -64,6 +72,12 @@ export default function AdminOrdersPage() {
       o.customer.email.toLowerCase().includes(search.toLowerCase());
     return matchesFilter && matchesSearch;
   });
+
+  const totalPages = Math.ceil(filteredOrders.length / pageSize) || 1;
+  const safeCurrentPage = Math.min(Math.max(currentPage, 1), totalPages);
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, filteredOrders.length);
+  const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
 
   return (
     <div className="flex-1 flex flex-col">
@@ -124,7 +138,7 @@ export default function AdminOrdersPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-neutral-100 font-medium">
-                    {filteredOrders.map((order) => {
+                    {paginatedOrders.map((order) => {
                       const isSelected = selectedOrder?.orderNumber === order.orderNumber;
                       return (
                         <tr
@@ -171,6 +185,80 @@ export default function AdminOrdersPage() {
                     })}
                   </tbody>
                 </table>
+              </div>
+            )}
+
+            {/* Pagination Controls */}
+            {!loading && filteredOrders.length > 0 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 border-t border-neutral-200 bg-neutral-50/50 text-xs text-neutral-600">
+                <div className="flex items-center gap-2">
+                  <span>
+                    Showing <span className="font-bold text-neutral-900">{startIndex + 1}</span>-
+                    <span className="font-bold text-neutral-900">{endIndex}</span> of{" "}
+                    <span className="font-bold text-neutral-900">{filteredOrders.length}</span>
+                  </span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="ml-1 bg-white border border-neutral-200 px-2 py-0.5 rounded-xs text-[11px] font-bold outline-none focus:border-black cursor-pointer"
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                  </select>
+                </div>
+
+                {totalPages > 1 && (
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                      disabled={safeCurrentPage === 1}
+                      className="p-1 border border-neutral-200 rounded-xs bg-white text-neutral-700 hover:bg-neutral-100 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
+                      aria-label="Previous page"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </button>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter((page) => {
+                        if (totalPages <= 5) return true;
+                        if (page === 1 || page === totalPages) return true;
+                        return Math.abs(page - safeCurrentPage) <= 1;
+                      })
+                      .map((page, idx, arr) => {
+                        const prev = arr[idx - 1];
+                        return (
+                          <React.Fragment key={page}>
+                            {prev && page - prev > 1 && (
+                              <span className="px-1 text-neutral-400 select-none">...</span>
+                            )}
+                            <button
+                              onClick={() => setCurrentPage(page)}
+                              className={`w-6 h-6 flex items-center justify-center text-[11px] font-mono font-bold rounded-xs transition cursor-pointer ${
+                                safeCurrentPage === page
+                                  ? "bg-black text-white"
+                                  : "bg-white border border-neutral-200 text-neutral-700 hover:bg-neutral-100"
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          </React.Fragment>
+                        );
+                      })}
+
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                      disabled={safeCurrentPage === totalPages}
+                      className="p-1 border border-neutral-200 rounded-xs bg-white text-neutral-700 hover:bg-neutral-100 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
+                      aria-label="Next page"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -288,6 +376,18 @@ export default function AdminOrdersPage() {
                     <span className="font-mono">{formatPrice(selectedOrder.total)}</span>
                   </div>
                 </div>
+
+                {/* Print Cash Memo Action */}
+                <div className="pt-3 border-t border-neutral-200">
+                  <button
+                    type="button"
+                    onClick={() => setIsPrintMemoOpen(true)}
+                    className="flex items-center justify-center gap-2 w-full py-2.5 bg-black hover:bg-neutral-800 text-white text-xs font-bold uppercase tracking-wider rounded-xs transition cursor-pointer"
+                  >
+                    <Printer className="w-4 h-4 text-emerald-400" />
+                    Print Cash Memo / Invoice
+                  </button>
+                </div>
               </>
             ) : (
               <div className="py-24 text-center">
@@ -300,6 +400,15 @@ export default function AdminOrdersPage() {
           </div>
         </div>
       </main>
+
+      {/* Printable Cash Memo Modal */}
+      {selectedOrder && (
+        <OrderInvoiceMemo
+          order={selectedOrder}
+          isOpen={isPrintMemoOpen}
+          onClose={() => setIsPrintMemoOpen(false)}
+        />
+      )}
     </div>
   );
 }

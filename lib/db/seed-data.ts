@@ -470,6 +470,41 @@ export const initialBanners = {
     image:
       "https://images.unsplash.com/photo-1509967419530-da38b4704bc6?auto=format&fit=crop&w=1200&q=80",
   },
+  heroSlides: [
+    {
+      tag: "NEW ARRIVALS",
+      title: "THRIFTED.\nCURATED.",
+      subtitle: "Premium thrifted pieces. Handpicked for quality. Priced for you.",
+      ctaText: "SHOP NOW",
+      ctaLink: "/shop",
+      bgType: "image" as const,
+      image: "https://images.unsplash.com/photo-1509967419530-da38b4704bc6?auto=format&fit=crop&w=1200&q=80",
+      bgColor: "#0c0c0c",
+      textColor: "white" as const,
+    },
+    {
+      tag: "VINTAGE DROP 2026",
+      title: "EXCLUSIVE\nSTREETWEAR\nARCHIVES",
+      subtitle: "Heavyweight graphic hoodies, Japanese denim & authentic vintage silhouettes.",
+      ctaText: "EXPLORE HOODIES",
+      ctaLink: "/shop?category=hoodies",
+      bgType: "color" as const,
+      bgColor: "#14151a",
+      image: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=1200&q=80",
+      textColor: "white" as const,
+    },
+    {
+      tag: "LIMITED CURATION",
+      title: "RAW EDGES.\nAUTHENTIC CUTS.",
+      subtitle: "Up to 50% off select vintage jackets, cargo trousers and curated headwear.",
+      ctaText: "VIEW SALE DROPS",
+      ctaLink: "/shop?collections=all",
+      bgType: "color" as const,
+      bgColor: "#1a120b",
+      image: "https://images.unsplash.com/photo-1548883354-7622d03aca27?auto=format&fit=crop&w=1200&q=80",
+      textColor: "white" as const,
+    },
+  ],
   valueProps: [
     {
       title: "FREE SHIPPING",
@@ -518,6 +553,12 @@ export const initialBanners = {
         "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80",
     },
   ],
+  shopByCategorySection: {
+    enabled: true,
+    title: "SHOP BY CATEGORY",
+    limit: 5,
+    selectedCategories: ["hoodies", "t-shirts", "pants", "jackets", "accessories"],
+  },
   featuredCategorySection: {
     enabled: true,
     categorySlug: "hoodies",
@@ -637,3 +678,30 @@ export const initialOrders = [
     paymentStatus: "pending",
   },
 ];
+
+export const initialAbout = {
+  identifier: "site_about",
+  badge: "OUR PHILOSOPHY",
+  title: "THRIFTED CULTURE. CURATED STYLE.",
+  subtitle: "Pieces with a past, made for the present. Founded in 2024 to redefine vintage streetwear.",
+  bannerImage: "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=1200&q=80",
+  storyTitle: "THE NEON VISION",
+  storyContent: "Born in the underground streetwear movement, NEON reclaims authentic vintage silhouettes, heavy french terry fabrics, and timeless thrift drops for modern street expression.",
+  pillars: [
+    {
+      number: "01. HANDPICKED",
+      title: "HANDPICKED",
+      description: "Every garment in our catalog is hand-selected from vintage markets, thrift vaults, and private collections across the globe. We check seams, zippers, prints, and fabric weight.",
+    },
+    {
+      number: "02. RESTORED",
+      title: "RESTORED",
+      description: "Each item undergoes eco-friendly deep cleaning, conditioning, and quality grading before it hits our virtual drops. We preserve the authentic vintage character while ensuring modern wearability.",
+    },
+    {
+      number: "03. ACCESSIBLE",
+      title: "ACCESSIBLE",
+      description: "Streetwear should not cost an arm and a leg. We price our drops fairly, offering true archival fits, heavy french terry cotton, and drop-shoulder silhouettes at realistic prices.",
+    },
+  ],
+};

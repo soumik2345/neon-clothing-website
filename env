@@ -1,0 +1,7 @@
+# MongoDB Database Connection String
+# Local MongoDB: mongodb://127.0.0.1:27017/neon_thrift
+# MongoDB Atlas: mongodb+srv://<user>:<password>@cluster.mongodb.net/neon_thrift?retryWrites=true&w=majority
+MONGODB_URI=mongodb://127.0.0.1:27017/neon_thrift
+
+# Next.js Application URL
+NEXT_PUBLIC_APP_URL=http://localhost:3000

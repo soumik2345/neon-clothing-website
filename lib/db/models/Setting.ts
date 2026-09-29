@@ -10,6 +10,9 @@ export interface ISetting extends Document {
   supportPhone: string;
   instagramHandle: string;
   address: string;
+  cloudinaryCloudName?: string;
+  cloudinaryApiKey?: string;
+  cloudinaryApiSecret?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,6 +31,9 @@ const SettingSchema = new Schema<ISetting>(
     supportPhone: { type: String, default: "+91 98765 43210" },
     instagramHandle: { type: String, default: "@neon.thrift" },
     address: { type: String, default: "Streetwear Vault, Fashion District" },
+    cloudinaryCloudName: { type: String, default: "" },
+    cloudinaryApiKey: { type: String, default: "" },
+    cloudinaryApiSecret: { type: String, default: "" },
   },
   { timestamps: true }
 );

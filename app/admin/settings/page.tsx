@@ -86,7 +86,7 @@ export default function AdminSettingsPage() {
                 <input
                   type="text"
                   required
-                  value={settings.storeName}
+                  value={settings.storeName || ""}
                   onChange={(e) =>
                     setSettings({ ...settings, storeName: e.target.value.toUpperCase() })
                   }
@@ -101,7 +101,7 @@ export default function AdminSettingsPage() {
                 <input
                   type="text"
                   required
-                  value={settings.currency}
+                  value={settings.currency || ""}
                   onChange={(e) => setSettings({ ...settings, currency: e.target.value })}
                   className="w-full p-2.5 border border-neutral-300 rounded-xs outline-none focus:border-black font-bold"
                 />
@@ -113,7 +113,7 @@ export default function AdminSettingsPage() {
                 </label>
                 <input
                   type="text"
-                  value={settings.tagline}
+                  value={settings.tagline || ""}
                   onChange={(e) => setSettings({ ...settings, tagline: e.target.value })}
                   className="w-full p-2.5 border border-neutral-300 rounded-xs outline-none focus:border-black"
                 />
@@ -127,7 +127,7 @@ export default function AdminSettingsPage() {
                   type="number"
                   required
                   min={0}
-                  value={settings.freeShippingThreshold}
+                  value={settings.freeShippingThreshold ?? 1499}
                   onChange={(e) =>
                     setSettings({
                       ...settings,
@@ -144,7 +144,7 @@ export default function AdminSettingsPage() {
                 </label>
                 <input
                   type="text"
-                  value={settings.instagramHandle}
+                  value={settings.instagramHandle || ""}
                   onChange={(e) => setSettings({ ...settings, instagramHandle: e.target.value })}
                   className="w-full p-2.5 border border-neutral-300 rounded-xs outline-none focus:border-black font-mono"
                 />
@@ -156,7 +156,7 @@ export default function AdminSettingsPage() {
                 </label>
                 <input
                   type="email"
-                  value={settings.supportEmail}
+                  value={settings.supportEmail || ""}
                   onChange={(e) => setSettings({ ...settings, supportEmail: e.target.value })}
                   className="w-full p-2.5 border border-neutral-300 rounded-xs outline-none focus:border-black"
                 />
@@ -168,7 +168,7 @@ export default function AdminSettingsPage() {
                 </label>
                 <input
                   type="text"
-                  value={settings.supportPhone}
+                  value={settings.supportPhone || ""}
                   onChange={(e) => setSettings({ ...settings, supportPhone: e.target.value })}
                   className="w-full p-2.5 border border-neutral-300 rounded-xs outline-none focus:border-black"
                 />
@@ -180,9 +180,68 @@ export default function AdminSettingsPage() {
                 </label>
                 <input
                   type="text"
-                  value={settings.address}
+                  value={settings.address || ""}
                   onChange={(e) => setSettings({ ...settings, address: e.target.value })}
                   className="w-full p-2.5 border border-neutral-300 rounded-xs outline-none focus:border-black"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Cloudinary Integration Settings */}
+          <div className="bg-white p-6 border border-neutral-200 rounded-xs shadow-2xs space-y-5">
+            <div>
+              <h2 className="text-sm font-bold uppercase tracking-wider text-black">
+                Cloudinary Media Storage (Optional)
+              </h2>
+              <p className="text-xs text-neutral-500">
+                Configure your Cloudinary credentials for cloud-hosted images, CDN optimization, and direct file uploads.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div>
+                <label className="block uppercase font-bold text-neutral-700 mb-1">
+                  Cloud Name
+                </label>
+                <input
+                  type="text"
+                  value={settings.cloudinaryCloudName || ""}
+                  onChange={(e) =>
+                    setSettings({ ...settings, cloudinaryCloudName: e.target.value })
+                  }
+                  placeholder="e.g. your-cloud-name"
+                  className="w-full p-2.5 border border-neutral-300 rounded-xs outline-none focus:border-black font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block uppercase font-bold text-neutral-700 mb-1">
+                  API Key
+                </label>
+                <input
+                  type="text"
+                  value={settings.cloudinaryApiKey || ""}
+                  onChange={(e) =>
+                    setSettings({ ...settings, cloudinaryApiKey: e.target.value })
+                  }
+                  placeholder="e.g. 123456789012345"
+                  className="w-full p-2.5 border border-neutral-300 rounded-xs outline-none focus:border-black font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block uppercase font-bold text-neutral-700 mb-1">
+                  API Secret
+                </label>
+                <input
+                  type="password"
+                  value={settings.cloudinaryApiSecret || ""}
+                  onChange={(e) =>
+                    setSettings({ ...settings, cloudinaryApiSecret: e.target.value })
+                  }
+                  placeholder="••••••••••••••••"
+                  className="w-full p-2.5 border border-neutral-300 rounded-xs outline-none focus:border-black font-mono"
                 />
               </div>
             </div>

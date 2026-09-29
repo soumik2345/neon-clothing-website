@@ -1,77 +1,46 @@
-import { connectDB, isMongoConnected } from "@/lib/db/mongodb";
+import { connectDB } from "@/lib/db/mongodb";
 import { Order, IOrder } from "@/lib/db/models/Order";
-import { initialOrders } from "@/lib/db/seed-data";
 import { OrderType } from "../types/order.types";
 
-let localOrders: OrderType[] = [...initialOrders].map((o, idx) => ({
-  ...o,
-  _id: `ord_${idx + 1}`,
-  id: `ord_${idx + 1}`,
-  createdAt: new Date(Date.now() - idx * 3600000 * 5).toISOString(),
-  updatedAt: new Date().toISOString(),
-})) as OrderType[];
+export async function getOrders(filter?: { email?: string }): Promise<OrderType[]> {
+  await connectDB();
 
-export async function seedOrdersIfEmpty(): Promise<void> {
-  const db = await connectDB();
-  if (db && isMongoConnected()) {
-    try {
-      const count = await Order.countDocuments();
-      if (count === 0) {
-        await Order.insertMany(initialOrders);
-        console.log("Successfully seeded MongoDB orders!");
-      }
-    } catch (e) {
-      console.warn("Error seeding MongoDB orders:", e);
-    }
+  const query: Record<string, unknown> = {};
+  if (filter?.email && filter.email.trim()) {
+    query["customer.email"] = { $regex: new RegExp(`^${filter.email.trim()}$`, "i") };
   }
+
+  const orders = await Order.find(query).sort({ createdAt: -1 }).lean();
+  return orders.map((doc: unknown) => {
+    const o = doc as IOrder & { _id: unknown };
+    return {
+      ...o,
+      _id: String(o._id),
+      id: String(o._id),
+    } as OrderType;
+  });
 }
 
-export async function getOrders(): Promise<OrderType[]> {
-  await seedOrdersIfEmpty();
+export async function getOrderById(idOrNumber: string): Promise<OrderType | null> {
+  await connectDB();
 
-  const db = await connectDB();
-  if (db && isMongoConnected()) {
-    try {
-      const orders = await Order.find().sort({ createdAt: -1 }).lean();
-      return orders.map((doc: unknown) => {
-        const o = doc as IOrder & { _id: unknown };
-        return {
-          ...o,
-          _id: o._id ? String(o._id) : undefined,
-          id: o._id ? String(o._id) : undefined,
-        } as OrderType;
-      });
-    } catch (err) {
-      console.warn("MongoDB getOrders failed, using fallback:", err);
-    }
+  const cleanQuery = idOrNumber.trim();
+  let doc = await Order.findOne({
+    orderNumber: { $regex: new RegExp(`^${cleanQuery}$`, "i") },
+  }).lean();
+
+  if (!doc && cleanQuery.match(/^[0-9a-fA-F]{24}$/)) {
+    doc = await Order.findById(cleanQuery).lean();
   }
 
-  return [...localOrders].sort(
-    (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
-  );
-}
+  if (!doc) return null;
 
-export async function getOrderById(id: string): Promise<OrderType | null> {
-  const db = await connectDB();
-  if (db && isMongoConnected()) {
-    try {
-      const doc = await Order.findById(id).lean();
-      if (doc) {
-        const o = doc as IOrder & { _id: unknown };
-        return {
-          ...o,
-          _id: String(o._id),
-          id: String(o._id),
-        } as OrderType;
-      }
-    } catch (err) {
-      console.warn("MongoDB getOrderById failed, using fallback:", err);
-    }
-  }
-
-  return (
-    localOrders.find((o) => o._id === id || o.id === id || o.orderNumber === id) || null
-  );
+  const o = doc as IOrder & { _id: unknown };
+  return {
+    ...o,
+    _id: String(o._id),
+    id: String(o._id),
+  } as OrderType;
 }
 
 export async function createOrder(data: {
@@ -79,6 +48,8 @@ export async function createOrder(data: {
   items: OrderType["items"];
   paymentMethod?: "cod" | "card";
 }): Promise<OrderType> {
+  await connectDB();
+
   const subtotal = data.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shippingFee = subtotal >= 1499 ? 0 : 99;
   const total = subtotal + shippingFee;
@@ -86,7 +57,15 @@ export async function createOrder(data: {
 
   const orderPayload = {
     orderNumber,
-    customer: data.customer,
+    customer: {
+      ...data.customer,
+      name: data.customer.name.trim(),
+      email: data.customer.email.toLowerCase().trim(),
+      phone: data.customer.phone.trim(),
+      address: data.customer.address.trim(),
+      city: data.customer.city.trim(),
+      postalCode: data.customer.postalCode.trim(),
+    },
     items: data.items,
     subtotal,
     shippingFee,
@@ -94,32 +73,14 @@ export async function createOrder(data: {
     status: "pending" as const,
     paymentMethod: data.paymentMethod || "cod",
     paymentStatus: data.paymentMethod === "card" ? ("paid" as const) : ("pending" as const),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
   };
 
-  const db = await connectDB();
-  if (db && isMongoConnected()) {
-    try {
-      const created = await Order.create(orderPayload);
-      return {
-        ...created.toObject(),
-        _id: String(created._id),
-        id: String(created._id),
-      } as OrderType;
-    } catch (err) {
-      console.warn("MongoDB createOrder failed, using fallback:", err);
-    }
-  }
-
-  const newOrder: OrderType = {
-    ...orderPayload,
-    _id: `ord_${Date.now()}`,
-    id: `ord_${Date.now()}`,
-  };
-
-  localOrders.unshift(newOrder);
-  return newOrder;
+  const created = await Order.create(orderPayload);
+  return {
+    ...created.toObject(),
+    _id: String(created._id),
+    id: String(created._id),
+  } as OrderType;
 }
 
 export async function updateOrderStatus(
@@ -127,35 +88,18 @@ export async function updateOrderStatus(
   status: OrderType["status"],
   paymentStatus?: OrderType["paymentStatus"]
 ): Promise<OrderType | null> {
+  await connectDB();
+
   const updateData: Partial<OrderType> = { status };
   if (paymentStatus) updateData.paymentStatus = paymentStatus;
 
-  const db = await connectDB();
-  if (db && isMongoConnected()) {
-    try {
-      const updated = await Order.findByIdAndUpdate(id, updateData, { new: true }).lean();
-      if (updated) {
-        const o = updated as IOrder & { _id: unknown };
-        return {
-          ...o,
-          _id: String(o._id),
-          id: String(o._id),
-        } as OrderType;
-      }
-    } catch (err) {
-      console.warn("MongoDB updateOrderStatus failed, using fallback:", err);
-    }
-  }
+  const updated = await Order.findByIdAndUpdate(id, updateData, { new: true }).lean();
+  if (!updated) return null;
 
-  const idx = localOrders.findIndex((o) => o._id === id || o.id === id);
-  if (idx !== -1) {
-    localOrders[idx] = {
-      ...localOrders[idx],
-      ...updateData,
-      updatedAt: new Date().toISOString(),
-    };
-    return localOrders[idx];
-  }
-
-  return null;
+  const o = updated as IOrder & { _id: unknown };
+  return {
+    ...o,
+    _id: String(o._id),
+    id: String(o._id),
+  } as OrderType;
 }

@@ -80,6 +80,11 @@ export function Footer({
                 </Link>
               </li>
               <li>
+                <Link href="/collections" className="hover:text-black transition">
+                  All Collections
+                </Link>
+              </li>
+              <li>
                 <Link href="/shop/hoodies" className="hover:text-black transition">
                   Hoodies
                 </Link>

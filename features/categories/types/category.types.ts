@@ -7,6 +7,7 @@ export interface CategoryType {
   description?: string;
   itemCount: number;
   order: number;
+  showOnHome?: boolean;
   createdAt?: string | Date;
   updatedAt?: string | Date;
 }

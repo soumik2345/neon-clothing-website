@@ -2,60 +2,90 @@ import React from "react";
 import Image from "next/image";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { connectDB } from "@/lib/db/mongodb";
+import { About } from "@/lib/db/models/About";
+import { initialAbout } from "@/lib/db/seed-data";
 
-export default function AboutPage() {
+export const dynamic = "force-dynamic";
+
+async function getAboutData() {
+  try {
+    await connectDB();
+    const doc = await About.findOne({ identifier: "site_about" }).lean();
+    if (doc) {
+      return JSON.parse(JSON.stringify(doc));
+    }
+  } catch (error) {
+    console.error("Error fetching about data:", error);
+  }
+  return initialAbout;
+}
+
+export default async function AboutPage() {
+  const about = await getAboutData();
+
   return (
     <div className="min-h-screen flex flex-col bg-[#fdfdfd]">
       <Header />
 
       <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 py-12 md:py-16 w-full space-y-12">
+        {/* Title Section */}
         <div className="text-center space-y-2">
-          <span className="text-xs font-bold uppercase tracking-widest text-neutral-400">
-            OUR PHILOSOPHY
-          </span>
+          {about.badge && (
+            <span className="text-xs font-bold uppercase tracking-widest text-neutral-400">
+              {about.badge}
+            </span>
+          )}
           <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tight text-black font-mono">
-            THRIFTED CULTURE. CURATED STYLE.
+            {about.title || "THRIFTED CULTURE. CURATED STYLE."}
           </h1>
-          <p className="text-xs text-neutral-500 max-w-xl mx-auto">
-            Pieces with a past, made for the present. Founded in 2024 to redefine vintage streetwear.
-          </p>
+          {about.subtitle && (
+            <p className="text-xs text-neutral-500 max-w-xl mx-auto">
+              {about.subtitle}
+            </p>
+          )}
         </div>
 
-        <div className="relative aspect-[16/9] w-full bg-neutral-900 overflow-hidden">
-          <Image
-            src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=1200&q=80"
-            alt="NEON Warehouse Curation"
-            fill
-            className="object-cover opacity-90"
-            sizes="(max-width: 1024px) 100vw, 900px"
-          />
-        </div>
+        {/* Hero / Banner Image */}
+        {about.bannerImage && (
+          <div className="relative aspect-[16/9] w-full bg-neutral-900 overflow-hidden rounded-xs shadow-sm">
+            <Image
+              src={about.bannerImage}
+              alt={about.title || "About NEON Streetwear"}
+              fill
+              className="object-cover opacity-90"
+              sizes="(max-width: 1024px) 100vw, 900px"
+              priority
+            />
+          </div>
+        )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-xs leading-relaxed text-neutral-600">
-          <div className="space-y-2">
-            <h3 className="font-black uppercase text-black font-mono text-sm">01. HANDPICKED</h3>
-            <p>
-              Every garment in our catalog is hand-selected from vintage markets, thrift vaults, and
-              private collections across the globe. We check seams, zippers, prints, and fabric weight.
+        {/* Feature Pillars */}
+        {about.pillars && about.pillars.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-xs leading-relaxed text-neutral-600">
+            {about.pillars.map((pillar: { number?: string; title: string; description: string }, idx: number) => (
+              <div key={idx} className="space-y-2 p-5 bg-white border border-neutral-200 rounded-xs shadow-2xs">
+                <h3 className="font-black uppercase text-black font-mono text-sm tracking-tight">
+                  {pillar.number ? `${pillar.number} ` : `${String(idx + 1).padStart(2, "0")}. `}
+                  {pillar.title}
+                </h3>
+                <p className="text-neutral-600 leading-normal">{pillar.description}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Vision / Story Section */}
+        {about.storyContent && (
+          <div className="p-8 bg-neutral-900 text-white rounded-xs space-y-3">
+            <h2 className="text-sm font-bold uppercase font-mono tracking-wider text-neutral-300">
+              {about.storyTitle || "THE NEON STORY"}
+            </h2>
+            <p className="text-xs text-neutral-300 leading-relaxed max-w-3xl whitespace-pre-wrap">
+              {about.storyContent}
             </p>
           </div>
-
-          <div className="space-y-2">
-            <h3 className="font-black uppercase text-black font-mono text-sm">02. RESTORED</h3>
-            <p>
-              Each item undergoes eco-friendly deep cleaning, conditioning, and quality grading before
-              it hits our virtual drops. We preserve the authentic vintage character while ensuring modern wearability.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="font-black uppercase text-black font-mono text-sm">03. ACCESSIBLE</h3>
-            <p>
-              Streetwear should not cost an arm and a leg. We price our drops fairly, offering true
-              archival fits, heavy french terry cotton, and drop-shoulder silhouettes at realistic prices.
-            </p>
-          </div>
-        </div>
+        )}
       </main>
 
       <Footer />

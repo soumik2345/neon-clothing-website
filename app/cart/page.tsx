@@ -1,19 +1,46 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { useCart } from "@/features/cart/context/CartContext";
 import { formatPrice } from "@/lib/utils/utils";
-import { Trash2, Plus, Minus, ArrowRight, ShoppingBag } from "lucide-react";
+import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, MapPin, CheckCircle2, User, UserCheck } from "lucide-react";
+
+interface UserProfile {
+  name?: string;
+  email?: string;
+  phone?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    postalCode?: string;
+  };
+}
 
 export default function CartPage() {
   const { cart, updateQuantity, removeFromCart, subtotal, clearCart } = useCart();
   const [couponCode, setCouponCode] = useState("");
   const [discount, setDiscount] = useState(0);
   const [couponApplied, setCouponApplied] = useState(false);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const res = await fetch("/api/auth/me");
+        const json = await res.json();
+        if (json.authenticated && json.user) {
+          setCurrentUser(json.user);
+        }
+      } catch (err) {
+        console.error("Failed to load user in cart:", err);
+      }
+    }
+    checkAuth();
+  }, []);
 
   const freeShippingThreshold = 1499;
   const difference = freeShippingThreshold - subtotal;
@@ -161,7 +188,64 @@ export default function CartPage() {
             </div>
 
             {/* Summary Box */}
-            <div className="lg:col-span-4 space-y-6">
+            <div className="lg:col-span-4 space-y-5">
+              {/* Delivery Details Card for Logged In User */}
+              {currentUser ? (
+                <div className="bg-white border border-neutral-200 p-5 space-y-3">
+                  <div className="flex items-center justify-between border-b border-neutral-100 pb-2.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-black flex items-center gap-1.5 font-mono">
+                      <MapPin className="w-3.5 h-3.5 text-black" /> Delivery Details
+                    </span>
+                    <Link
+                      href="/profile"
+                      className="text-[10px] font-bold text-neutral-500 hover:text-black uppercase underline"
+                    >
+                      Edit Profile
+                    </Link>
+                  </div>
+
+                  <div className="text-xs space-y-1">
+                    <p className="font-bold text-black uppercase">
+                      {currentUser.name || "Customer Account"}
+                    </p>
+                    <p className="text-neutral-500 text-[11px]">{currentUser.email}</p>
+                    {currentUser.phone && (
+                      <p className="text-neutral-600 text-[11px] font-mono">
+                        Phone: {currentUser.phone}
+                      </p>
+                    )}
+                    {currentUser.address?.street ? (
+                      <p className="text-neutral-700 text-xs pt-1">
+                        {currentUser.address.street}
+                        {currentUser.address.city && `, ${currentUser.address.city}`}
+                        {currentUser.address.postalCode && ` - ${currentUser.address.postalCode}`}
+                      </p>
+                    ) : (
+                      <p className="text-neutral-400 italic text-[11px] pt-1">
+                        No address saved yet. You can provide it at checkout.
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="pt-2 border-t border-neutral-100 flex items-center gap-1.5 text-[11px] text-emerald-700 font-semibold">
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                    <span>Auto-applied to your checkout</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-neutral-50 border border-neutral-200 p-4 space-y-2 text-xs">
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-black font-mono">
+                    <User className="w-3.5 h-3.5 text-neutral-600" /> Fast Checkout
+                  </div>
+                  <p className="text-neutral-500 text-[11px]">
+                    <Link href="/login?redirect=/cart" className="text-black font-bold underline">
+                      Sign in
+                    </Link>{" "}
+                    to auto-load your saved shipping address and phone number.
+                  </p>
+                </div>
+              )}
+
               <div className="bg-white border border-neutral-200 p-6 space-y-5">
                 <h2 className="text-sm font-bold uppercase tracking-wider text-black border-b border-neutral-200 pb-3">
                   Order Summary

@@ -11,6 +11,17 @@ export interface IBanner extends Document {
     ctaLink: string;
     image: string;
   };
+  heroSlides?: Array<{
+    tag: string;
+    title: string;
+    subtitle: string;
+    ctaText: string;
+    ctaLink: string;
+    bgType: "image" | "color";
+    image?: string;
+    bgColor?: string;
+    textColor?: "white" | "black";
+  }>;
   valueProps: Array<{
     title: string;
     subtitle: string;
@@ -23,12 +34,41 @@ export interface IBanner extends Document {
     ctaLink: string;
     image: string;
   }>;
-  featuredCategorySection: {
+  shopByCategorySection?: {
+    enabled: boolean;
+    title: string;
+    limit: number;
+    selectedCategories: string[];
+  };
+  featuredCategorySection?: {
     enabled: boolean;
     categorySlug: string;
     title: string;
     subtitle?: string;
     limit: number;
+  };
+  featuredCategorySections?: Array<{
+    id?: string;
+    enabled: boolean;
+    tag?: string;
+    categorySlug: string;
+    title: string;
+    subtitle?: string;
+    limit: number;
+    selectedProductIds?: string[];
+  }>;
+  categoryTabbedSection?: {
+    enabled: boolean;
+    tag?: string;
+    title: string;
+    subtitle?: string;
+    items: Array<{
+      categorySlug: string;
+      label?: string;
+      limit: number;
+      selectedProductIds?: string[];
+      enabled: boolean;
+    }>;
   };
   instagramFeed: Array<{
     image: string;
@@ -60,6 +100,22 @@ const BannerSchema = new Schema<IBanner>(
           "https://images.unsplash.com/photo-1509967419530-da38b4704bc6?auto=format&fit=crop&w=1200&q=80",
       },
     },
+    heroSlides: [
+      {
+        tag: { type: String, default: "NEW ARRIVALS" },
+        title: { type: String, default: "THRIFTED.\nCURATED." },
+        subtitle: {
+          type: String,
+          default: "Premium thrifted pieces. Handpicked for quality. Priced for you.",
+        },
+        ctaText: { type: String, default: "SHOP NOW" },
+        ctaLink: { type: String, default: "/shop" },
+        bgType: { type: String, enum: ["image", "color"], default: "image" },
+        image: { type: String, default: "" },
+        bgColor: { type: String, default: "#0c0c0c" },
+        textColor: { type: String, enum: ["white", "black"], default: "white" },
+      },
+    ],
     valueProps: [
       {
         title: { type: String, required: true },
@@ -76,12 +132,48 @@ const BannerSchema = new Schema<IBanner>(
         image: { type: String, required: true },
       },
     ],
+    shopByCategorySection: {
+      enabled: { type: Boolean, default: true },
+      title: { type: String, default: "SHOP BY CATEGORY" },
+      limit: { type: Number, default: 5 },
+      selectedCategories: { type: [String], default: [] },
+    },
     featuredCategorySection: {
       enabled: { type: Boolean, default: true },
       categorySlug: { type: String, default: "hoodies" },
       title: { type: String, default: "FEATURED COLLECTION: HOODIES" },
       subtitle: { type: String, default: "Handpicked heavyweight hoodies & vintage drops" },
       limit: { type: Number, default: 10 },
+    },
+    featuredCategorySections: [
+      {
+        id: { type: String },
+        enabled: { type: Boolean, default: true },
+        tag: { type: String, default: "CATEGORY SPOTLIGHT" },
+        categorySlug: { type: String, required: true, default: "hoodies" },
+        title: { type: String, required: true, default: "FEATURED COLLECTION: HOODIES" },
+        subtitle: { type: String, default: "Heavyweight french terry hoodies & vintage drops" },
+        limit: { type: Number, default: 10 },
+        selectedProductIds: { type: [String], default: [] },
+      },
+    ],
+    categoryTabbedSection: {
+      enabled: { type: Boolean, default: true },
+      tag: { type: String, default: "CURATED DROPS & COLLABS" },
+      title: { type: String, default: "EXPLORE BY CATEGORY" },
+      subtitle: {
+        type: String,
+        default: "Select a category to view handpicked streetwear pieces",
+      },
+      items: [
+        {
+          categorySlug: { type: String, required: true },
+          label: { type: String },
+          limit: { type: Number, default: 8 },
+          selectedProductIds: { type: [String], default: [] },
+          enabled: { type: Boolean, default: true },
+        },
+      ],
     },
     instagramFeed: [
       {

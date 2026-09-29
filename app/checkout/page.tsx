@@ -14,17 +14,47 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { cart, subtotal, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
+  const [userProfile, setUserProfile] = useState<{
+    name?: string;
+    email?: string;
+    phone?: string;
+    address?: { street?: string; city?: string; postalCode?: string };
+  } | null>(null);
 
   const [customer, setCustomer] = useState({
-    name: "Alex Vance",
-    email: "alex@example.com",
-    phone: "+91 98765 43210",
-    address: "220 Urban Streetwear Alley",
-    city: "Mumbai",
-    postalCode: "400001",
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    city: "",
+    postalCode: "",
   });
 
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "card">("cod");
+
+  // Load logged-in user profile to avoid redundant typing
+  React.useEffect(() => {
+    async function loadUserProfile() {
+      try {
+        const res = await fetch("/api/auth/me");
+        const json = await res.json();
+        if (json.authenticated && json.user) {
+          setUserProfile(json.user);
+          setCustomer({
+            name: json.user.name || "",
+            email: json.user.email || "",
+            phone: json.user.phone || "",
+            address: json.user.address?.street || "",
+            city: json.user.address?.city || "",
+            postalCode: json.user.address?.postalCode || "",
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load user profile in checkout:", err);
+      }
+    }
+    loadUserProfile();
+  }, []);
 
   const shippingFee = subtotal >= 1499 || subtotal === 0 ? 0 : 99;
   const total = subtotal + shippingFee;
@@ -113,6 +143,21 @@ export default function CheckoutPage() {
         <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           {/* Customer & Shipping Form */}
           <div className="lg:col-span-7 space-y-8">
+            {/* Logged in User Saved Address Banner */}
+            {userProfile && (
+              <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xs text-xs flex items-start gap-3">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold uppercase tracking-wider text-emerald-950 font-mono">
+                    Signed in as {userProfile.name || userProfile.email}
+                  </p>
+                  <p className="text-emerald-800 mt-0.5">
+                    Your profile contact &amp; shipping details have been auto-filled below. You can update or edit them anytime before placing the order.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Contact Details */}
             <div className="bg-white p-6 border border-neutral-200 space-y-4">
               <h2 className="text-xs font-bold uppercase tracking-wider text-black border-b border-neutral-200 pb-3">
@@ -127,9 +172,10 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     required
+                    placeholder="Enter your full name"
                     value={customer.name}
                     onChange={(e) => setCustomer({ ...customer, name: e.target.value })}
-                    className="w-full p-2.5 border border-neutral-300 rounded-none outline-none focus:border-black"
+                    className="w-full p-2.5 border border-neutral-300 rounded-none outline-none focus:border-black placeholder:text-neutral-400"
                   />
                 </div>
 
@@ -140,9 +186,10 @@ export default function CheckoutPage() {
                   <input
                     type="email"
                     required
+                    placeholder="name@example.com"
                     value={customer.email}
                     onChange={(e) => setCustomer({ ...customer, email: e.target.value })}
-                    className="w-full p-2.5 border border-neutral-300 rounded-none outline-none focus:border-black"
+                    className="w-full p-2.5 border border-neutral-300 rounded-none outline-none focus:border-black placeholder:text-neutral-400"
                   />
                 </div>
 
@@ -153,9 +200,10 @@ export default function CheckoutPage() {
                   <input
                     type="tel"
                     required
+                    placeholder="10-digit mobile number"
                     value={customer.phone}
                     onChange={(e) => setCustomer({ ...customer, phone: e.target.value })}
-                    className="w-full p-2.5 border border-neutral-300 rounded-none outline-none focus:border-black"
+                    className="w-full p-2.5 border border-neutral-300 rounded-none outline-none focus:border-black placeholder:text-neutral-400 font-mono"
                   />
                 </div>
               </div>
@@ -175,9 +223,10 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     required
+                    placeholder="House / flat no., street, area"
                     value={customer.address}
                     onChange={(e) => setCustomer({ ...customer, address: e.target.value })}
-                    className="w-full p-2.5 border border-neutral-300 rounded-none outline-none focus:border-black"
+                    className="w-full p-2.5 border border-neutral-300 rounded-none outline-none focus:border-black placeholder:text-neutral-400"
                   />
                 </div>
 
@@ -189,9 +238,10 @@ export default function CheckoutPage() {
                     <input
                       type="text"
                       required
+                      placeholder="City / District"
                       value={customer.city}
                       onChange={(e) => setCustomer({ ...customer, city: e.target.value })}
-                      className="w-full p-2.5 border border-neutral-300 rounded-none outline-none focus:border-black"
+                      className="w-full p-2.5 border border-neutral-300 rounded-none outline-none focus:border-black placeholder:text-neutral-400"
                     />
                   </div>
 
@@ -202,9 +252,10 @@ export default function CheckoutPage() {
                     <input
                       type="text"
                       required
+                      placeholder="6-digit PIN code"
                       value={customer.postalCode}
                       onChange={(e) => setCustomer({ ...customer, postalCode: e.target.value })}
-                      className="w-full p-2.5 border border-neutral-300 rounded-none outline-none focus:border-black font-mono"
+                      className="w-full p-2.5 border border-neutral-300 rounded-none outline-none focus:border-black font-mono placeholder:text-neutral-400"
                     />
                   </div>
                 </div>

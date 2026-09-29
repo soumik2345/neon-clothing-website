@@ -29,7 +29,7 @@ export async function POST() {
       await Product.insertMany(initialProducts);
       await Category.insertMany(initialCategories);
       await Order.insertMany(initialOrders);
-      await Banner.create(initialBanners);
+      await Banner.create(initialBanners as unknown as Record<string, unknown>);
       await Setting.create(initialSettings);
 
       return NextResponse.json({

@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { Plus, Edit2, Trash2, Search, X, Check, ArrowUpDown } from "lucide-react";
+import { Plus, Edit2, Trash2, Search, X, Check, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { AdminHeader } from "@/features/admin/components/AdminHeader";
 import { ProductType } from "@/features/products/types/product.types";
 import { CategoryType } from "@/features/categories/types/category.types";
 import { formatPrice } from "@/lib/utils/utils";
+import { ImageUploadInput } from "@/components/ui/ImageUploadInput";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<ProductType[]>([]);
@@ -14,6 +15,8 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -21,16 +24,16 @@ export default function AdminProductsPage() {
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
-    price: 999,
-    originalPrice: 1499,
-    category: "hoodies",
+    price: 0,
+    originalPrice: 0,
+    category: "",
     description: "",
-    condition: "Grade A Curated Vintage",
+    condition: "",
     image: "",
-    sizes: "S, M, L, XL",
-    stock: 10,
+    sizes: "",
+    stock: 1,
     isTrending: false,
-    isFeatured: true,
+    isFeatured: false,
   });
 
   const fetchData = useCallback(async () => {
@@ -60,16 +63,16 @@ export default function AdminProductsPage() {
     setFormData({
       title: "",
       slug: "",
-      price: 1299,
-      originalPrice: 1899,
-      category: categories[0]?.slug || "hoodies",
-      description: "Curated streetwear thrift piece in excellent condition.",
-      condition: "Mint Thrift Condition (9.5/10)",
-      image: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=800&q=80",
-      sizes: "S, M, L, XL",
-      stock: 10,
+      price: 0,
+      originalPrice: 0,
+      category: categories[0]?.slug || "",
+      description: "",
+      condition: "",
+      image: "",
+      sizes: "",
+      stock: 1,
       isTrending: false,
-      isFeatured: true,
+      isFeatured: false,
     });
     setIsModalOpen(true);
   };
@@ -83,9 +86,9 @@ export default function AdminProductsPage() {
       originalPrice: p.originalPrice || p.price,
       category: p.category,
       description: p.description,
-      condition: p.condition || "Grade A Curated Vintage",
+      condition: p.condition || "",
       image: p.images[0] || "",
-      sizes: p.sizes ? p.sizes.join(", ") : "S, M, L, XL",
+      sizes: p.sizes ? p.sizes.join(", ") : "",
       stock: p.stock,
       isTrending: p.isTrending,
       isFeatured: p.isFeatured,
@@ -164,6 +167,10 @@ export default function AdminProductsPage() {
     }
   };
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, selectedCategory]);
+
   const filteredProducts = products.filter((p) => {
     const matchesSearch =
       p.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -173,6 +180,12 @@ export default function AdminProductsPage() {
       p.category.toLowerCase() === selectedCategory.toLowerCase();
     return matchesSearch && matchesCat;
   });
+
+  const totalPages = Math.ceil(filteredProducts.length / pageSize) || 1;
+  const safeCurrentPage = Math.min(Math.max(currentPage, 1), totalPages);
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, filteredProducts.length);
+  const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
 
   return (
     <div className="flex-1 flex flex-col">
@@ -238,7 +251,7 @@ export default function AdminProductsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100 font-medium">
-                  {filteredProducts.map((p) => (
+                  {paginatedProducts.map((p) => (
                     <tr key={p._id || p.id} className="hover:bg-neutral-50/80 transition">
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
@@ -266,11 +279,11 @@ export default function AdminProductsPage() {
                       </td>
                       <td className="py-3 px-4 font-bold text-black font-mono">
                         {formatPrice(p.price)}
-                        {p.originalPrice && p.originalPrice > p.price && (
+                        {typeof p.originalPrice === "number" && p.originalPrice > p.price ? (
                           <span className="text-[10px] text-neutral-400 line-through ml-1.5 font-normal">
                             {formatPrice(p.originalPrice)}
                           </span>
-                        )}
+                        ) : null}
                       </td>
                       <td className="py-3 px-4">
                         <span
@@ -316,6 +329,83 @@ export default function AdminProductsPage() {
               </table>
             </div>
           )}
+
+          {/* Pagination Toolbar */}
+          {!loading && filteredProducts.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-neutral-200 bg-neutral-50/50 text-xs text-neutral-600">
+              <div className="flex items-center gap-3">
+                <span>
+                  Showing <span className="font-bold text-neutral-900">{startIndex + 1}</span> to{" "}
+                  <span className="font-bold text-neutral-900">{endIndex}</span> of{" "}
+                  <span className="font-bold text-neutral-900">{filteredProducts.length}</span> products
+                </span>
+                <div className="flex items-center gap-1.5 ml-2">
+                  <span className="text-neutral-400">Per page:</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="bg-white border border-neutral-200 px-2 py-1 rounded-xs text-xs font-bold outline-none focus:border-black cursor-pointer"
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                  </select>
+                </div>
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                    disabled={safeCurrentPage === 1}
+                    className="p-1.5 border border-neutral-200 rounded-xs bg-white text-neutral-700 hover:bg-neutral-100 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((page) => {
+                      if (totalPages <= 5) return true;
+                      if (page === 1 || page === totalPages) return true;
+                      return Math.abs(page - safeCurrentPage) <= 1;
+                    })
+                    .map((page, idx, arr) => {
+                      const prev = arr[idx - 1];
+                      return (
+                        <React.Fragment key={page}>
+                          {prev && page - prev > 1 && (
+                            <span className="px-1 text-neutral-400 select-none">...</span>
+                          )}
+                          <button
+                            onClick={() => setCurrentPage(page)}
+                            className={`w-7 h-7 flex items-center justify-center text-xs font-mono font-bold rounded-xs transition cursor-pointer ${
+                              safeCurrentPage === page
+                                ? "bg-black text-white"
+                                : "bg-white border border-neutral-200 text-neutral-700 hover:bg-neutral-100"
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        </React.Fragment>
+                      );
+                    })}
+
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                    disabled={safeCurrentPage === totalPages}
+                    className="p-1.5 border border-neutral-200 rounded-xs bg-white text-neutral-700 hover:bg-neutral-100 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
+                    aria-label="Next page"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </main>
 
@@ -350,7 +440,7 @@ export default function AdminProductsPage() {
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="e.g. Dark Dreams Hoodie"
+                  placeholder="Product Title"
                   className="w-full p-2.5 border border-neutral-300 rounded-xs outline-none focus:border-black"
                 />
               </div>
@@ -395,6 +485,7 @@ export default function AdminProductsPage() {
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="w-full p-2.5 border border-neutral-300 rounded-xs outline-none focus:border-black uppercase font-medium"
                   >
+                    <option value="" disabled>Select Category</option>
                     {categories.map((c) => (
                       <option key={c.slug} value={c.slug}>
                         {c.name}
@@ -418,16 +509,13 @@ export default function AdminProductsPage() {
               </div>
 
               <div>
-                <label className="block uppercase font-bold text-neutral-700 mb-1">
-                  Image URL *
-                </label>
-                <input
-                  type="url"
-                  required
+                <ImageUploadInput
+                  label="Product Image *"
                   value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full p-2.5 border border-neutral-300 rounded-xs outline-none focus:border-black"
+                  onChange={(url) => setFormData({ ...formData, image: url })}
+                  description="Upload file or enter direct URL"
+                  placeholder="Paste product image URL"
+                  aspectRatioClass="aspect-[4/5]"
                 />
               </div>
 
@@ -440,7 +528,7 @@ export default function AdminProductsPage() {
                     type="text"
                     value={formData.condition}
                     onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
-                    placeholder="e.g. Mint Condition (9.5/10)"
+                    placeholder="e.g. Mint Condition (9/10)"
                     className="w-full p-2.5 border border-neutral-300 rounded-xs outline-none focus:border-black"
                   />
                 </div>
@@ -452,7 +540,7 @@ export default function AdminProductsPage() {
                     type="text"
                     value={formData.sizes}
                     onChange={(e) => setFormData({ ...formData, sizes: e.target.value })}
-                    placeholder="S, M, L, XL"
+                    placeholder="e.g. S, M, L, XL"
                     className="w-full p-2.5 border border-neutral-300 rounded-xs outline-none focus:border-black uppercase"
                   />
                 </div>
@@ -466,6 +554,7 @@ export default function AdminProductsPage() {
                   rows={3}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Enter detailed description of the item"
                   className="w-full p-2.5 border border-neutral-300 rounded-xs outline-none focus:border-black"
                 />
               </div>

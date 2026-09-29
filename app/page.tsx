@@ -7,10 +7,10 @@ import { CategoryGrid } from "@/features/categories/components/CategoryGrid";
 import { TrendingSection } from "@/features/products/components/TrendingSection";
 import { PromoCards } from "@/features/banners/components/PromoCards";
 import { CategoryShowcaseSection } from "@/features/products/components/CategoryShowcaseSection";
-import { InstagramFeed } from "@/features/banners/components/InstagramFeed";
 import { getBanners } from "@/features/banners/services/banner.service";
 import { getCategories } from "@/features/categories/services/category.service";
 import { getProducts } from "@/features/products/services/product.service";
+import { ProductType } from "@/features/products/types/product.types";
 import { getSettings } from "@/features/settings/services/settings.service";
 
 export const revalidate = 0;
@@ -23,19 +23,83 @@ export default async function HomePage() {
     getSettings(),
   ]);
 
-  // Featured Category Section from Admin Config
-  const featuredConfig = banners.featuredCategorySection || {
+  // Shop By Category Section Config (from Admin Panel)
+  const shopByCategoryConfig = banners.shopByCategorySection || {
     enabled: true,
-    categorySlug: "hoodies",
-    title: "FEATURED COLLECTION: HOODIES",
-    subtitle: "Heavyweight french terry hoodies & vintage drops",
-    limit: 10,
+    title: "SHOP BY CATEGORY",
+    limit: 5,
+    selectedCategories: [],
   };
 
-  const featuredCategoryProducts = await getProducts({
-    category: featuredConfig.categorySlug,
-    limit: featuredConfig.limit || 10,
-  });
+  let displayCategories = categories;
+
+  if (
+    shopByCategoryConfig.selectedCategories &&
+    shopByCategoryConfig.selectedCategories.length > 0
+  ) {
+    const catMap = new Map(categories.map((c) => [c.slug, c]));
+    const matched = shopByCategoryConfig.selectedCategories
+      .map((slug) => catMap.get(slug))
+      .filter((c): c is typeof categories[number] => Boolean(c));
+    if (matched.length > 0) {
+      displayCategories = matched;
+    }
+  } else {
+    displayCategories = categories.filter((c) => c.showOnHome !== false);
+  }
+
+  const categoryLimit = Number(shopByCategoryConfig.limit) || 5;
+  displayCategories = displayCategories.slice(0, categoryLimit);
+
+  // Dynamic Category Spotlight Sections from Admin Config
+  const rawSpotlightSections =
+    banners.featuredCategorySections && banners.featuredCategorySections.length > 0
+      ? banners.featuredCategorySections
+      : banners.featuredCategorySection
+      ? [
+          {
+            id: "sec_default_hoodies",
+            enabled: banners.featuredCategorySection.enabled !== false,
+            tag: "CATEGORY SPOTLIGHT",
+            categorySlug: banners.featuredCategorySection.categorySlug || "hoodies",
+            title: banners.featuredCategorySection.title || "FEATURED COLLECTION: HOODIES",
+            subtitle:
+              banners.featuredCategorySection.subtitle ||
+              "Heavyweight french terry hoodies & vintage drops",
+            limit: banners.featuredCategorySection.limit || 10,
+            selectedProductIds: [],
+          },
+        ]
+      : [];
+
+  const activeSpotlightSections = rawSpotlightSections.filter((s) => s.enabled !== false);
+
+  const spotlightSectionsWithProducts = await Promise.all(
+    activeSpotlightSections.map(async (sec) => {
+      let prods: ProductType[] = [];
+      const secLimit = Number(sec.limit) || 10;
+
+      if (sec.selectedProductIds && sec.selectedProductIds.length > 0) {
+        prods = await getProducts({
+          ids: sec.selectedProductIds,
+          limit: secLimit,
+        });
+      }
+
+      if (prods.length === 0 && sec.categorySlug) {
+        prods = await getProducts({
+          category: sec.categorySlug,
+          limit: secLimit,
+        });
+      }
+
+      return {
+        ...sec,
+        products: prods,
+      };
+    })
+  );
+
 
   return (
     <div className="min-h-screen flex flex-col bg-[#fdfdfd]">
@@ -46,37 +110,36 @@ export default async function HomePage() {
       />
 
       <main className="flex-1">
-        {/* Hero Section */}
-        <HeroBanner hero={banners.hero} />
+        {/* Hero Section Carousel */}
+        <HeroBanner hero={banners.hero} slides={banners.heroSlides} />
 
         {/* 4 Feature Props Bar */}
         <ValueProps items={banners.valueProps} />
 
-        {/* Category Grid (5 categories) */}
-        <CategoryGrid categories={categories} />
+        {/* Shop By Category Section (Responsive Slider for mobile, Grid for desktop) */}
+        {shopByCategoryConfig.enabled !== false && displayCategories.length > 0 && (
+          <CategoryGrid
+            categories={displayCategories}
+            title={shopByCategoryConfig.title || "SHOP BY CATEGORY"}
+          />
+        )}
 
         {/* Trending Now Products Carousel */}
         <TrendingSection products={trendingProducts} />
 
+        {/* Dynamic Category Sections (Hoodies, T-Shirts, Pants etc. - styled identically to Trending Now) */}
+        {spotlightSectionsWithProducts.map((sec) => (
+          <CategoryShowcaseSection
+            key={sec.id || `${sec.categorySlug}-${sec.title}`}
+            title={sec.title || sec.categorySlug.toUpperCase()}
+            categorySlug={sec.categorySlug}
+            products={sec.products}
+          />
+        ))}
+
         {/* 3 Promo Banners */}
         <PromoCards cards={banners.promoCards} />
 
-        {/* Dynamic Category-Based Showcase Section (configured from Admin Panel) */}
-        {featuredConfig.enabled !== false && (
-          <CategoryShowcaseSection
-            title={featuredConfig.title || `COLLECTION: ${featuredConfig.categorySlug.toUpperCase()}`}
-            subtitle={featuredConfig.subtitle}
-            categorySlug={featuredConfig.categorySlug}
-            products={featuredCategoryProducts}
-            limit={featuredConfig.limit}
-          />
-        )}
-
-        {/* Instagram Grid Bar */}
-        <InstagramFeed
-          posts={banners.instagramFeed}
-          handle={settings.instagramHandle}
-        />
       </main>
 
       {/* Comprehensive Footer */}

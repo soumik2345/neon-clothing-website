@@ -14,6 +14,8 @@ export async function GET(request: NextRequest) {
       ? searchParams.get("isFeatured") === "true"
       : undefined;
     const sort = (searchParams.get("sort") as "price-asc" | "price-desc" | "newest" | "popular") || undefined;
+    const limit = searchParams.get("limit") ? Number(searchParams.get("limit")) : 100;
+    const ids = searchParams.get("ids") ? searchParams.get("ids")!.split(",").filter(Boolean) : undefined;
 
     const products = await getProducts({
       category,
@@ -21,6 +23,8 @@ export async function GET(request: NextRequest) {
       isTrending,
       isFeatured,
       sort,
+      limit,
+      ids,
     });
 
     return NextResponse.json({ success: true, data: products });

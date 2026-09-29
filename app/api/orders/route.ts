@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getOrders, createOrder } from "@/features/orders/services/order.service";
 import { CreateOrderSchema } from "@/features/orders/schemas/order.schema";
+import { getCurrentUser } from "@/lib/auth/auth";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const orders = await getOrders();
+    const { searchParams } = new URL(request.url);
+    let email = searchParams.get("email") || undefined;
+
+    const session = await getCurrentUser();
+    // If authenticated as a customer and no email query or requested own email, use session email
+    if (session && session.role === "customer") {
+      email = session.email;
+    }
+
+    const orders = await getOrders({ email });
     return NextResponse.json({ success: true, data: orders });
   } catch (error) {
     console.error("API Error in GET /api/orders:", error);

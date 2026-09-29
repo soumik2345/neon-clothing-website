@@ -7,6 +7,7 @@ export interface ICategory extends Document {
   description?: string;
   itemCount: number;
   order: number;
+  showOnHome: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,6 +20,7 @@ const CategorySchema = new Schema<ICategory>(
     description: { type: String, default: "" },
     itemCount: { type: Number, default: 0 },
     order: { type: Number, default: 0 },
+    showOnHome: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

@@ -54,11 +54,11 @@ export function ProductCard({ product }: ProductCardProps) {
           />
 
           {/* Condition or Discount Tag */}
-          {product.originalPrice && product.originalPrice > product.price && (
+          {typeof product.originalPrice === "number" && product.originalPrice > product.price ? (
             <span className="absolute top-2 left-2 bg-black text-white text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider">
               SAVE {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
             </span>
-          )}
+          ) : null}
         </div>
 
         {/* Product Meta */}
@@ -71,11 +71,11 @@ export function ProductCard({ product }: ProductCardProps) {
             <span className="text-xs sm:text-sm font-bold text-neutral-900">
               {formatPrice(product.price)}
             </span>
-            {product.originalPrice && product.originalPrice > product.price && (
+            {typeof product.originalPrice === "number" && product.originalPrice > product.price ? (
               <span className="text-[11px] text-neutral-400 line-through">
                 {formatPrice(product.originalPrice)}
               </span>
-            )}
+            ) : null}
           </div>
         </div>
       </Link>

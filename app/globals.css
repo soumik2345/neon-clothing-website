@@ -2,7 +2,8 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #000000;
+  color-scheme: light;
 }
 
 @theme inline {
@@ -12,15 +13,46 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background: #ffffff;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  color-scheme: light;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Universal high-contrast input styling for entire site (frontend, backend, admin) */
+input,
+textarea,
+select {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  color-scheme: light !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+input::placeholder,
+textarea::placeholder,
+select::placeholder {
+  color: #666666 !important;
+  -webkit-text-fill-color: #666666 !important;
+  opacity: 1 !important;
+}
+
+/* Fix browser autofill styling so text stays jet black on white background */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill {
+  -webkit-text-fill-color: #000000 !important;
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  transition: background-color 5000s ease-in-out 0s;
 }

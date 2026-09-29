@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Menu, RefreshCw, CheckCircle, ExternalLink } from "lucide-react";
+import { Menu, RefreshCw, CheckCircle, ExternalLink, LogOut } from "lucide-react";
 import Link from "next/link";
 
 interface AdminHeaderProps {
@@ -67,8 +67,14 @@ export function AdminHeader({ title, onOpenMobileSidebar }: AdminHeaderProps) {
       <div className="flex items-center gap-3">
         <button
           type="button"
-          onClick={onOpenMobileSidebar}
-          className="lg:hidden p-2 text-neutral-600 hover:text-black"
+          onClick={() => {
+            if (onOpenMobileSidebar) {
+              onOpenMobileSidebar();
+            } else {
+              window.dispatchEvent(new Event("toggle-admin-mobile-sidebar"));
+            }
+          }}
+          className="lg:hidden p-2 text-neutral-600 hover:text-black cursor-pointer"
           aria-label="Open sidebar"
         >
           <Menu className="w-5 h-5" />
@@ -125,6 +131,19 @@ export function AdminHeader({ title, onOpenMobileSidebar }: AdminHeaderProps) {
         >
           <ExternalLink className="w-4 h-4" />
         </Link>
+
+        {/* Logout button */}
+        <button
+          type="button"
+          onClick={async () => {
+            await fetch("/api/auth/admin/logout", { method: "POST" });
+            window.location.href = "/admin/login";
+          }}
+          className="p-2 text-neutral-500 hover:text-red-600 transition cursor-pointer"
+          title="Sign Out of Admin Portal"
+        >
+          <LogOut className="w-4 h-4" />
+        </button>
       </div>
     </header>
   );

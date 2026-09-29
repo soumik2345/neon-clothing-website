@@ -9,4 +9,7 @@ export interface SiteSettingsType {
   supportPhone: string;
   instagramHandle: string;
   address: string;
+  cloudinaryCloudName?: string;
+  cloudinaryApiKey?: string;
+  cloudinaryApiSecret?: string;
 }

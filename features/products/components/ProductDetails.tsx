@@ -115,7 +115,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
             <span className="text-2xl font-black text-black font-mono">
               {formatPrice(product.price)}
             </span>
-            {product.originalPrice && product.originalPrice > product.price && (
+            {typeof product.originalPrice === "number" && product.originalPrice > product.price ? (
               <>
                 <span className="text-sm text-neutral-400 line-through">
                   {formatPrice(product.originalPrice)}
@@ -124,7 +124,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                   SAVE {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
                 </span>
               </>
-            )}
+            ) : null}
           </div>
           <p className="text-[11px] text-neutral-500 mt-1">Taxes included. Free shipping on orders &gt; ₹1499</p>
         </div>
