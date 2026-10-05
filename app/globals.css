@@ -56,12 +56,3 @@ select:-webkit-autofill {
   -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
   transition: background-color 5000s ease-in-out 0s;
 }
-
-/* Admin dark-theme login: override autofill to keep white text on dark bg */
-.admin-dark-input:-webkit-autofill,
-.admin-dark-input:-webkit-autofill:hover,
-.admin-dark-input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #ffffff !important;
-  -webkit-box-shadow: 0 0 0px 1000px #0c0c0c inset !important;
-  transition: background-color 5000s ease-in-out 0s;
-}

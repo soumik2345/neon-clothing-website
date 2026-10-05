@@ -39,18 +39,18 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0c0c0c] text-white flex flex-col justify-center items-center px-4 py-12">
+    <div className="min-h-screen bg-[#f8f9fa] text-black flex flex-col justify-center items-center px-4 py-12">
       <div className="w-full max-w-md space-y-8">
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <Link href="/" className="inline-block group">
-            <span className="text-3xl sm:text-4xl font-black tracking-widest text-white uppercase font-mono">
+            <span className="text-3xl sm:text-4xl font-black tracking-widest text-black uppercase font-mono">
               NEON
             </span>
           </Link>
           <div className="flex items-center justify-center gap-1.5 pt-1">
-            <ShieldCheck className="w-4 h-4 text-neutral-400" />
-            <span className="text-xs font-bold uppercase tracking-[0.25em] text-neutral-400">
+            <ShieldCheck className="w-4 h-4 text-black" />
+            <span className="text-xs font-bold uppercase tracking-[0.25em] text-neutral-700">
               ADMIN CONTROL PANEL
             </span>
           </div>
@@ -60,45 +60,45 @@ export default function AdminLoginPage() {
         </div>
 
         {/* Login Card */}
-        <div className="bg-[#141414] border border-neutral-800 p-8 rounded-xs shadow-2xl space-y-6">
+        <div className="bg-white border border-neutral-200 p-8 rounded-xs shadow-md space-y-6">
           {error && (
-            <div className="p-3 bg-red-950/40 border border-red-800/50 rounded-xs flex items-center gap-2.5 text-xs text-red-300">
-              <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xs flex items-center gap-2.5 text-xs text-red-600">
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
               <span>{error}</span>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5 text-xs">
             <div>
-              <label className="block font-bold uppercase tracking-wider text-neutral-300 mb-1.5">
+              <label className="block font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
                 Admin Email
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500" />
+                <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@example.com"
-                  className="admin-dark-input w-full pl-10 pr-4 py-3 bg-[#0c0c0c] border border-neutral-700 text-white placeholder-neutral-500 outline-none focus:border-white transition rounded-none font-mono"
+                  placeholder="admin@neonthrift.com"
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-neutral-300 text-black placeholder-neutral-400 outline-none focus:border-black transition rounded-none font-mono text-xs"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block font-bold uppercase tracking-wider text-neutral-300 mb-1.5">
+              <label className="block font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
                 Password
               </label>
               <div className="relative">
-                <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500" />
+                <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="admin-dark-input w-full pl-10 pr-4 py-3 bg-[#0c0c0c] border border-neutral-700 text-white placeholder-neutral-500 outline-none focus:border-white transition rounded-none"
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-neutral-300 text-black placeholder-neutral-400 outline-none focus:border-black transition rounded-none text-xs"
                 />
               </div>
             </div>
@@ -106,7 +106,7 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-neutral-200 transition duration-150 flex items-center justify-center gap-2 disabled:opacity-50 mt-2"
+              className="w-full py-3.5 bg-black text-white font-bold uppercase tracking-widest text-xs hover:bg-neutral-800 transition duration-150 flex items-center justify-center gap-2 disabled:opacity-50 mt-2"
             >
               {loading ? "Authenticating..." : "Login to Dashboard"}
               <ArrowRight className="w-4 h-4" />
@@ -117,7 +117,7 @@ export default function AdminLoginPage() {
         <div className="text-center">
           <Link
             href="/"
-            className="text-xs text-neutral-500 hover:text-white transition uppercase font-medium"
+            className="text-xs text-neutral-500 hover:text-black transition uppercase font-medium"
           >
             ← Return to Neon Storefront
           </Link>
