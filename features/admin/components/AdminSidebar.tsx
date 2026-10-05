@@ -11,11 +11,11 @@ import {
   Sliders,
   Settings,
   ArrowLeft,
-  Database,
   LogOut,
   X,
   MessageSquare,
   FileText,
+  Bell,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -30,6 +30,7 @@ export function AdminSidebar({ onCloseMobile }: AdminSidebarProps) {
     { label: "Products", href: "/admin/products", icon: ShoppingBag },
     { label: "Categories", href: "/admin/categories", icon: Layers },
     { label: "Orders", href: "/admin/orders", icon: Package },
+    { label: "Notifications", href: "/admin/notifications", icon: Bell },
     { label: "Messages", href: "/admin/messages", icon: MessageSquare },
     { label: "Banners & Hero", href: "/admin/banners", icon: Sliders },
     { label: "About Us", href: "/admin/about", icon: FileText },
@@ -84,13 +85,8 @@ export function AdminSidebar({ onCloseMobile }: AdminSidebarProps) {
         })}
       </nav>
 
-      {/* Database connection badge & Store link */}
+      {/* Store link & Logout */}
       <div className="p-4 border-t border-neutral-800 space-y-3">
-        <div className="flex items-center gap-2 px-3 py-2 bg-neutral-900 border border-neutral-800 rounded-xs text-[11px] text-neutral-400">
-          <Database className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-          <span className="truncate">MongoDB Ready</span>
-        </div>
-
         <Link
           href="/"
           className="flex items-center justify-center gap-2 w-full py-2 bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white text-xs font-semibold uppercase tracking-wider rounded-xs transition border border-neutral-800"

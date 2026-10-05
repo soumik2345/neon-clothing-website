@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
       : undefined;
     const sort = (searchParams.get("sort") as "price-asc" | "price-desc" | "newest" | "popular") || undefined;
     const limit = searchParams.get("limit") ? Number(searchParams.get("limit")) : 100;
+    const page = searchParams.get("page") ? Number(searchParams.get("page")) : undefined;
     const ids = searchParams.get("ids") ? searchParams.get("ids")!.split(",").filter(Boolean) : undefined;
 
     const products = await getProducts({
@@ -23,6 +24,7 @@ export async function GET(request: NextRequest) {
       isTrending,
       isFeatured,
       sort,
+      page,
       limit,
       ids,
     });

@@ -12,4 +12,11 @@ export interface SiteSettingsType {
   cloudinaryCloudName?: string;
   cloudinaryApiKey?: string;
   cloudinaryApiSecret?: string;
+  appDownload?: {
+    enabled?: boolean;
+    title?: string;
+    subtitle?: string;
+    playStoreUrl?: string;
+    appStoreUrl?: string;
+  };
 }

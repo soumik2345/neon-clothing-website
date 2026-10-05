@@ -4,19 +4,29 @@ import { SiteSettingsType } from "../types/settings.types";
 import { initialSettings } from "@/lib/db/seed-data";
 
 export async function getSettings(): Promise<SiteSettingsType> {
-  await connectDB();
+  try {
+    await connectDB();
 
-  let doc = await Setting.findOne({ identifier: "site_settings" }).lean();
-  if (!doc) {
-    const created = await Setting.create(initialSettings);
-    doc = created.toObject();
+    let doc = await Setting.findOne({ identifier: "site_settings" }).lean();
+    if (!doc) {
+      const created = await Setting.create(initialSettings);
+      doc = created.toObject();
+    }
+
+    if (doc) {
+      const s = doc as ISetting & { _id: unknown };
+      return JSON.parse(
+        JSON.stringify({
+          ...s,
+          _id: String(s._id),
+        })
+      ) as SiteSettingsType;
+    }
+  } catch (error) {
+    console.warn("getSettings fallback to initialSettings:", error);
   }
 
-  const s = doc as ISetting & { _id: unknown };
-  return {
-    ...s,
-    _id: String(s._id),
-  } as SiteSettingsType;
+  return JSON.parse(JSON.stringify(initialSettings)) as SiteSettingsType;
 }
 
 export async function updateSettings(
@@ -31,8 +41,10 @@ export async function updateSettings(
   ).lean();
 
   const s = updated as ISetting & { _id: unknown };
-  return {
-    ...s,
-    _id: String(s._id),
-  } as SiteSettingsType;
+  return JSON.parse(
+    JSON.stringify({
+      ...s,
+      _id: String(s._id),
+    })
+  ) as SiteSettingsType;
 }

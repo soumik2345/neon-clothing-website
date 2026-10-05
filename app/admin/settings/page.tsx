@@ -250,6 +250,131 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
+          {/* Mobile App Download Links (Footer) */}
+          <div className="bg-white p-6 border border-neutral-200 rounded-xs shadow-2xs space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-bold uppercase tracking-wider text-black">
+                  Mobile App Promotion (Footer)
+                </h2>
+                <p className="text-xs text-neutral-500">
+                  Configure the mobile app download banners displayed in the website footer.
+                </p>
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer text-xs font-bold uppercase select-none">
+                <input
+                  type="checkbox"
+                  checked={settings.appDownload?.enabled ?? true}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      appDownload: {
+                        ...settings.appDownload,
+                        enabled: e.target.checked,
+                      },
+                    })
+                  }
+                  className="w-4 h-4 accent-black rounded cursor-pointer"
+                />
+                Show In Footer
+              </label>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div>
+                <label className="block uppercase font-bold text-neutral-700 mb-1">
+                  Section Title
+                </label>
+                <input
+                  type="text"
+                  value={settings.appDownload?.title || ""}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      appDownload: {
+                        ...settings.appDownload,
+                        title: e.target.value,
+                      },
+                    })
+                  }
+                  placeholder="e.g. DOWNLOAD OUR APP"
+                  className="w-full p-2.5 border border-neutral-300 rounded-xs outline-none focus:border-black font-mono font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="block uppercase font-bold text-neutral-700 mb-1">
+                  Subtitle / Promo Text
+                </label>
+                <input
+                  type="text"
+                  value={settings.appDownload?.subtitle || ""}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      appDownload: {
+                        ...settings.appDownload,
+                        subtitle: e.target.value,
+                      },
+                    })
+                  }
+                  placeholder="e.g. Shop curated vintage streetwear on the go."
+                  className="w-full p-2.5 border border-neutral-300 rounded-xs outline-none focus:border-black"
+                />
+              </div>
+
+              <div>
+                <label className="block uppercase font-bold text-neutral-700 mb-1 flex items-center justify-between">
+                  <span>Google Play Store URL (Android)</span>
+                  <span className="text-[10px] text-neutral-400 font-normal">Leave blank to hide logo</span>
+                </label>
+                <input
+                  type="url"
+                  value={settings.appDownload?.playStoreUrl || ""}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      appDownload: {
+                        ...settings.appDownload,
+                        playStoreUrl: e.target.value,
+                      },
+                    })
+                  }
+                  placeholder="https://play.google.com/store/apps/details?id=..."
+                  className="w-full p-2.5 border border-neutral-300 rounded-xs outline-none focus:border-black font-mono text-neutral-800"
+                />
+                <p className="text-[10px] text-neutral-400 mt-1">
+                  If filled, the official Google Play badge will automatically display.
+                </p>
+              </div>
+
+              <div>
+                <label className="block uppercase font-bold text-neutral-700 mb-1 flex items-center justify-between">
+                  <span>Apple App Store URL (iOS)</span>
+                  <span className="text-[10px] text-neutral-400 font-normal">Leave blank to hide logo</span>
+                </label>
+                <input
+                  type="url"
+                  value={settings.appDownload?.appStoreUrl || ""}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      appDownload: {
+                        ...settings.appDownload,
+                        appStoreUrl: e.target.value,
+                      },
+                    })
+                  }
+                  placeholder="https://apps.apple.com/app/..."
+                  className="w-full p-2.5 border border-neutral-300 rounded-xs outline-none focus:border-black font-mono text-neutral-800"
+                />
+                <p className="text-[10px] text-neutral-400 mt-1">
+                  If filled, the official Apple App Store badge will automatically display.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="flex items-center justify-end gap-3">
             {savedSuccess && (
               <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-600">

@@ -91,6 +91,9 @@ export default function CheckoutPage() {
       const json = await res.json();
       if (json.success) {
         clearCart();
+        if (typeof window !== "undefined" && customer.email) {
+          localStorage.setItem("neon_customer_email", customer.email.toLowerCase().trim());
+        }
         router.push(`/orders/${json.data.orderNumber}`);
       } else {
         alert(json.error || "Failed to process order");

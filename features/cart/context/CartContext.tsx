@@ -32,6 +32,25 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoaded(true);
     }
+
+    // Cross-tab synchronization
+    const handleStorageChange = (e: any) => {
+      if (e?.key === "neon_cart" && e?.newValue) {
+        try {
+          const updated = JSON.parse(e.newValue);
+          if (Array.isArray(updated)) {
+            setCart(updated);
+          }
+        } catch {}
+      } else if (e?.key === "neon_cart" && !e?.newValue) {
+        setCart([]);
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("storage", handleStorageChange);
+      return () => window.removeEventListener("storage", handleStorageChange);
+    }
   }, []);
 
   useEffect(() => {
@@ -75,10 +94,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = () => {
     setCart([]);
+    try {
+      localStorage.removeItem("neon_cart");
+    } catch (e) {
+      console.error("Failed to remove cart from localStorage", e);
+    }
   };
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const totalItems = cart.length;
 
   return (
     <CartContext.Provider

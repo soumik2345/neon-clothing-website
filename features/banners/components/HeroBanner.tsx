@@ -106,11 +106,30 @@ export function HeroBanner({ hero, slides }: HeroBannerProps) {
             return (
               <div
                 key={slide.id || index}
-                className="flex-[0_0_100%] min-w-0 relative transition-colors duration-500"
+                className="flex-[0_0_100%] min-w-0 relative overflow-hidden transition-colors duration-500"
                 style={{ backgroundColor: bgColor }}
               >
-                {/* Background Watermark/Texture for Solid Color Slides */}
-                {isSolidColor && (
+                {/* Full Background Image */}
+                {slide.image && (
+                  <div className="absolute inset-0 z-0">
+                    <Image
+                      src={slide.image}
+                      alt={slide.title.replace("\n", " ")}
+                      fill
+                      priority={index === 0}
+                      loading={index === 0 ? "eager" : "lazy"}
+                      fetchPriority={index === 0 ? "high" : "auto"}
+                      className="object-cover object-center transition-transform duration-700 hover:scale-105"
+                      sizes="100vw"
+                    />
+                    {/* Dark gradient overlay for crystal-clear readability */}
+                    <div className="absolute inset-0 bg-black/55" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent" />
+                  </div>
+                )}
+
+                {/* Background Watermark for Solid Color Mode */}
+                {isSolidColor && !slide.image && (
                   <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-5">
                     <span className="absolute -right-6 sm:-right-10 -bottom-6 sm:-bottom-10 text-[24vw] lg:text-[18vw] font-black font-mono tracking-tighter uppercase leading-none select-none text-white">
                       NEON
@@ -118,101 +137,61 @@ export function HeroBanner({ hero, slides }: HeroBannerProps) {
                   </div>
                 )}
 
-                <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-                  <div className="grid grid-cols-12 min-h-[220px] xs:min-h-[250px] sm:min-h-[360px] md:min-h-[480px] lg:min-h-[580px] items-center gap-2 sm:gap-6 lg:gap-8 py-3 xs:py-4 sm:py-8 lg:py-16">
-                    {/* Left Typography & CTAs (side-by-side like desktop) */}
-                    <div className="col-span-7 sm:col-span-7 lg:col-span-6 z-10 space-y-1.5 xs:space-y-2 sm:space-y-4 lg:space-y-6 text-left flex flex-col items-start">
-                      <div className="flex items-center gap-1.5 sm:gap-2">
+                {/* Foreground Content Container */}
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                  <div className="min-h-[320px] xs:min-h-[360px] sm:min-h-[460px] md:min-h-[520px] lg:min-h-[580px] flex flex-col justify-center py-8 sm:py-12 lg:py-16 text-left max-w-2xl space-y-2 sm:space-y-4 lg:space-y-5">
+                    {/* Badge */}
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`inline-block text-[9px] sm:text-xs font-bold tracking-[0.2em] uppercase px-2.5 py-1 rounded-xs font-mono ${
+                          isDarkText && !slide.image
+                            ? "bg-black/10 text-black"
+                            : "bg-white text-black shadow-xs"
+                        }`}
+                      >
+                        {slide.tag || "NEW ARRIVALS"}
+                      </span>
+
+                      {isSolidColor && !slide.image && (
                         <span
-                          className={`inline-block text-[8px] xs:text-[9px] sm:text-xs font-bold tracking-[0.15em] sm:tracking-[0.25em] uppercase px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-xs font-mono ${
-                            isDarkText
-                              ? "bg-black/10 text-black"
-                              : "bg-white/10 text-neutral-300"
+                          className={`text-[9px] sm:text-[10px] font-mono tracking-widest uppercase ${
+                            isDarkText ? "text-neutral-600" : "text-neutral-400"
                           }`}
                         >
-                          {slide.tag || "NEW ARRIVALS"}
+                          EXCLUSIVE DROP
                         </span>
-
-                        {isSolidColor && (
-                          <span
-                            className={`text-[7px] xs:text-[8px] sm:text-[10px] font-mono tracking-widest uppercase ${
-                              isDarkText ? "text-neutral-600" : "text-neutral-400"
-                            }`}
-                          >
-                            EXCLUSIVE DROP
-                          </span>
-                        )}
-                      </div>
-
-                      <h1
-                        className={`text-base xs:text-lg sm:text-3xl md:text-5xl lg:text-7xl font-black tracking-tight uppercase leading-[0.98] sm:leading-[0.95] whitespace-pre-line font-mono ${
-                          isDarkText ? "text-black" : "text-white"
-                        }`}
-                      >
-                        {slide.title || "THRIFTED.\nCURATED."}
-                      </h1>
-
-                      <p
-                        className={`text-[9px] xs:text-[10px] sm:text-xs md:text-sm lg:text-base max-w-xs sm:max-w-md leading-tight sm:leading-relaxed line-clamp-2 sm:line-clamp-none ${
-                          isDarkText ? "text-neutral-700" : "text-neutral-300"
-                        }`}
-                      >
-                        {slide.subtitle ||
-                          "Premium thrifted pieces. Handpicked for quality. Priced for you."}
-                      </p>
-
-                      <div className="pt-0.5 sm:pt-2">
-                        <Link
-                          href={slide.ctaLink || "/shop"}
-                          className={`inline-flex items-center justify-center gap-1 xs:gap-1.5 sm:gap-2 px-3 py-1.5 xs:px-4 xs:py-2 sm:px-8 sm:py-3.5 text-[8px] xs:text-[9px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest transition duration-200 shadow-sm rounded-xs group/btn ${
-                            isDarkText
-                              ? "bg-black text-white hover:bg-neutral-800"
-                              : "bg-white text-black hover:bg-neutral-200"
-                          }`}
-                        >
-                          <span>{slide.ctaText || "SHOP NOW"}</span>
-                          <ArrowRight className="w-2.5 h-2.5 xs:w-3 xs:h-3 sm:w-3.5 sm:h-3.5 group-hover/btn:translate-x-1 transition-transform" />
-                        </Link>
-                      </div>
+                      )}
                     </div>
 
-                    {/* Right Visual Image */}
-                    <div className="col-span-5 sm:col-span-5 lg:col-span-6 relative h-[180px] xs:h-[210px] sm:h-[320px] md:h-[440px] lg:h-[520px] w-full flex items-center justify-end">
-                      {slide.image ? (
-                        <div className="relative w-full h-full max-h-[190px] xs:max-h-[220px] sm:max-h-[340px] md:max-h-[460px] lg:max-h-[560px] overflow-hidden rounded-xs">
-                          <Image
-                            src={slide.image}
-                            alt={slide.title.replace("\n", " ")}
-                            fill
-                            priority={index === 0}
-                            className="object-cover object-center transition-transform duration-700 hover:scale-105"
-                            sizes="(max-width: 640px) 45vw, (max-width: 1024px) 50vw, 50vw"
-                          />
-                          {/* Gradient fade to merge smoothly with background */}
-                          <div
-                            className="absolute inset-0 pointer-events-none"
-                            style={{
-                              background: `linear-gradient(to top, ${bgColor} 0%, transparent 30%), linear-gradient(to right, ${bgColor} 0%, transparent 20%)`,
-                            }}
-                          />
-                        </div>
-                      ) : (
-                        /* If no image and solid color, show prominent graphic card */
-                        <div className="w-full max-w-xs aspect-4/5 border border-white/20 p-2.5 xs:p-4 sm:p-8 flex flex-col justify-between rounded-xs bg-white/5 backdrop-blur-xs">
-                          <div className="text-[7px] xs:text-[8px] sm:text-[10px] font-mono tracking-widest uppercase text-neutral-400">
-                            NEON &bull; STREETWEAR
-                          </div>
-                          <div className="space-y-1 sm:space-y-2">
-                            <span className="text-xs xs:text-sm sm:text-2xl md:text-3xl font-black font-mono tracking-tight uppercase text-white">
-                              VINTAGE
-                            </span>
-                            <p className="text-[8px] xs:text-[9px] sm:text-xs text-neutral-400 line-clamp-2">
-                              Hand-sourced, verified authentic.
-                            </p>
-                          </div>
-                          <div className="h-0.5 bg-white/20 w-8 sm:w-16" />
-                        </div>
-                      )}
+                    {/* Headline */}
+                    <h1
+                      className={`text-2xl xs:text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight uppercase leading-[0.95] whitespace-pre-line font-mono ${
+                        isDarkText && !slide.image ? "text-black" : "text-white"
+                      }`}
+                    >
+                      {slide.title || "THRIFTED.\nCURATED."}
+                    </h1>
+
+                    {/* Subtitle */}
+                    {slide.subtitle ? (
+                      <p
+                        className={`text-xs sm:text-sm md:text-base max-w-xl leading-relaxed ${
+                          isDarkText && !slide.image ? "text-neutral-700" : "text-neutral-200"
+                        }`}
+                      >
+                        {slide.subtitle}
+                      </p>
+                    ) : null}
+
+                    {/* CTA Button */}
+                    <div className="pt-2 sm:pt-4">
+                      <Link
+                        href={slide.ctaLink || "/shop"}
+                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 sm:px-8 sm:py-3.5 text-xs sm:text-sm font-black uppercase tracking-widest bg-white text-black hover:bg-neutral-200 transition duration-200 shadow-md rounded-none group/btn cursor-pointer"
+                      >
+                        <span>{slide.ctaText || "SHOP NOW"}</span>
+                        <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                      </Link>
                     </div>
                   </div>
                 </div>

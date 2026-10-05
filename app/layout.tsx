@@ -4,6 +4,7 @@ import { SettingsProvider } from "@/features/settings/context/SettingsContext";
 import { CartProvider } from "@/features/cart/context/CartContext";
 import { CartDrawer } from "@/features/cart/components/CartDrawer";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { NotificationPrompt } from "@/components/notifications/NotificationPrompt";
 import { getSettings } from "@/features/settings/services/settings.service";
 
 export const metadata: Metadata = {
@@ -37,6 +38,7 @@ export default async function RootLayout({
             {children}
             <CartDrawer />
             <BottomNav />
+            <NotificationPrompt />
           </CartProvider>
         </SettingsProvider>
       </body>

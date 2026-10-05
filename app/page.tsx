@@ -10,18 +10,45 @@ import { CategoryShowcaseSection } from "@/features/products/components/Category
 import { getBanners } from "@/features/banners/services/banner.service";
 import { getCategories } from "@/features/categories/services/category.service";
 import { getProducts } from "@/features/products/services/product.service";
+import { BannerContentType } from "@/features/banners/types/banner.types";
+import { CategoryType } from "@/features/categories/types/category.types";
 import { ProductType } from "@/features/products/types/product.types";
 import { getSettings } from "@/features/settings/services/settings.service";
+import { SiteSettingsType } from "@/features/settings/types/settings.types";
+import {
+  initialBanners,
+  initialCategories,
+  initialProducts,
+  initialSettings,
+} from "@/lib/db/seed-data";
 
 export const revalidate = 0;
 
 export default async function HomePage() {
-  const [banners, categories, trendingProducts, settings] = await Promise.all([
-    getBanners(),
-    getCategories(),
-    getProducts({ isTrending: true, limit: 12 }),
-    getSettings(),
-  ]);
+  let banners: BannerContentType = JSON.parse(JSON.stringify(initialBanners));
+  let categories: CategoryType[] = JSON.parse(JSON.stringify(initialCategories));
+  let trendingProducts: ProductType[] = JSON.parse(
+    JSON.stringify(initialProducts.filter((p) => p.isTrending))
+  );
+  let settings: SiteSettingsType = JSON.parse(JSON.stringify(initialSettings));
+
+  try {
+    const [rawBanners, rawCategories, rawTrendingProducts, rawSettings] =
+      await Promise.all([
+        getBanners(),
+        getCategories(),
+        getProducts({ isTrending: true, limit: 12 }),
+        getSettings(),
+      ]);
+
+    if (rawBanners) banners = JSON.parse(JSON.stringify(rawBanners));
+    if (rawCategories) categories = JSON.parse(JSON.stringify(rawCategories));
+    if (rawTrendingProducts)
+      trendingProducts = JSON.parse(JSON.stringify(rawTrendingProducts));
+    if (rawSettings) settings = JSON.parse(JSON.stringify(rawSettings));
+  } catch (err) {
+    console.warn("HomePage SSR data fetch fallback:", err);
+  }
 
   // Shop By Category Section Config (from Admin Panel)
   const shopByCategoryConfig = banners.shopByCategorySection || {
@@ -74,7 +101,7 @@ export default async function HomePage() {
 
   const activeSpotlightSections = rawSpotlightSections.filter((s) => s.enabled !== false);
 
-  const spotlightSectionsWithProducts = await Promise.all(
+  const rawSpotlightWithProds = await Promise.all(
     activeSpotlightSections.map(async (sec) => {
       let prods: ProductType[] = [];
       const secLimit = Number(sec.limit) || 10;
@@ -99,6 +126,9 @@ export default async function HomePage() {
       };
     })
   );
+
+  const spotlightSectionsWithProducts: Array<typeof rawSpotlightWithProds[number]> =
+    JSON.parse(JSON.stringify(rawSpotlightWithProds));
 
 
   return (
@@ -143,7 +173,11 @@ export default async function HomePage() {
       </main>
 
       {/* Comprehensive Footer */}
-      <Footer storeName={settings.storeName} tagline={settings.tagline} />
+      <Footer
+        storeName={settings.storeName}
+        tagline={settings.tagline}
+        appDownload={settings.appDownload}
+      />
     </div>
   );
 }

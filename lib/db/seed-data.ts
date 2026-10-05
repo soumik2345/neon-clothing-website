@@ -612,6 +612,13 @@ export const initialSettings = {
   supportPhone: "+91 98765 43210",
   instagramHandle: "@neon.thrift",
   address: "Fashion District, Streetwear Vault",
+  appDownload: {
+    enabled: true,
+    title: "DOWNLOAD OUR APP",
+    subtitle: "Shop curated vintage streetwear on the go. Get instant drop alerts.",
+    playStoreUrl: "https://play.google.com/store",
+    appStoreUrl: "https://apps.apple.com",
+  },
 };
 
 export const initialOrders = [

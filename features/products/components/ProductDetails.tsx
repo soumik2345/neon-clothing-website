@@ -17,6 +17,8 @@ import {
   Flame,
   ChevronDown,
   Info,
+  Minus,
+  Plus,
 } from "lucide-react";
 import { ProductType } from "../types/product.types";
 import { useCart } from "@/features/cart/context/CartContext";
@@ -28,7 +30,7 @@ interface ProductDetailsProps {
 
 export function ProductDetails({ product }: ProductDetailsProps) {
   const router = useRouter();
-  const { addToCart } = useCart();
+  const { cart, addToCart, updateQuantity } = useCart();
   const { formatPrice, freeShippingThreshold } = useSettings();
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState(
@@ -37,6 +39,22 @@ export function ProductDetails({ product }: ProductDetailsProps) {
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
   const [openAccordion, setOpenAccordion] = useState<string | null>("fabric");
+  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+    const x = Math.max(0, Math.min(100, ((e.clientX - left) / width) * 100));
+    const y = Math.max(0, Math.min(100, ((e.clientY - top) / height) * 100));
+    setZoomPos({ x, y });
+  };
+
+  const cartItem = cart.find(
+    (item) =>
+      item.productId === (product._id || product.id || product.slug) &&
+      item.size === selectedSize
+  );
+  const inCartQty = cartItem ? cartItem.quantity : 0;
 
   const defaultFabricBullets = [
     "Premium heavyweight french terry cotton / vintage washed blend.",
@@ -145,16 +163,34 @@ export function ProductDetails({ product }: ProductDetailsProps) {
           </div>
         )}
 
-        {/* Main Hero Image Frame with Navigation Overlay */}
-        <div className="relative aspect-[4/5] flex-1 bg-neutral-100 overflow-hidden rounded-xs border border-neutral-200 group">
-          <Image
-            src={images[selectedImage] || images[0]}
-            alt={product.title}
-            fill
-            priority
-            className="object-cover object-center transition-all duration-300"
-            sizes="(max-width: 1024px) 100vw, 60vw"
-          />
+        {/* Main Hero Image Frame with Interactive Zoom Magnifier */}
+        <div
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          onMouseMove={handleMouseMove}
+          className="relative aspect-[4/5] flex-1 bg-neutral-100 overflow-hidden rounded-xs border border-neutral-200 group cursor-crosshair"
+        >
+          <div
+            style={{
+              transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
+              transform: isHovered ? "scale(2.2)" : "scale(1)",
+            }}
+            className="w-full h-full relative transition-transform duration-150 ease-out"
+          >
+            <Image
+              src={images[selectedImage] || images[0]}
+              alt={product.title}
+              fill
+              priority
+              className="object-cover object-center pointer-events-none"
+              sizes="(max-width: 1024px) 100vw, 60vw"
+            />
+          </div>
+
+          {/* Zoom Indicator Badge */}
+          <div className="absolute bottom-4 right-4 z-10 bg-black/75 backdrop-blur-xs text-white text-[10px] font-mono font-bold px-2.5 py-1 rounded-2xs opacity-80 group-hover:opacity-100 transition pointer-events-none">
+            {isHovered ? "MAGNIFIED 2.2X" : "HOVER TO ZOOM"}
+          </div>
 
           {/* Condition Tag at Top Left */}
           {product.condition && (
@@ -310,23 +346,51 @@ export function ProductDetails({ product }: ProductDetailsProps) {
               </button>
             </div>
 
-            <button
-              type="button"
-              onClick={handleAddToCart}
-              className="flex-1 h-12 bg-black text-white text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 transition flex items-center justify-center gap-2 rounded-xs cursor-pointer active:scale-98"
-            >
-              {isAdded ? (
-                <>
-                  <Check className="w-4 h-4 text-emerald-400" />
-                  ADDED TO BAG
-                </>
-              ) : (
-                <>
-                  <ShoppingBag className="w-4 h-4" />
-                  ADD TO CART
-                </>
-              )}
-            </button>
+            {inCartQty > 0 && cartItem ? (
+              <div className="flex-1 h-12 bg-black text-white flex items-center justify-between px-3 rounded-xs font-mono">
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateQuantity(cartItem.productId, cartItem.size, cartItem.quantity - 1)
+                  }
+                  className="w-9 h-9 flex items-center justify-center hover:bg-neutral-800 transition rounded-xs cursor-pointer"
+                  aria-label="Decrease quantity"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <span className="text-xs font-bold tracking-wider">
+                  {inCartQty} IN BAG
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateQuantity(cartItem.productId, cartItem.size, cartItem.quantity + 1)
+                  }
+                  className="w-9 h-9 flex items-center justify-center hover:bg-neutral-800 transition rounded-xs cursor-pointer"
+                  aria-label="Increase quantity"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                className="flex-1 h-12 bg-black text-white text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 transition flex items-center justify-center gap-2 rounded-xs cursor-pointer active:scale-98"
+              >
+                {isAdded ? (
+                  <>
+                    <Check className="w-4 h-4 text-emerald-400" />
+                    ADDED TO BAG
+                  </>
+                ) : (
+                  <>
+                    <ShoppingBag className="w-4 h-4" />
+                    ADD TO CART
+                  </>
+                )}
+              </button>
+            )}
           </div>
 
           <button

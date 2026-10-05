@@ -3,18 +3,42 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
+import { useSettings } from "@/features/settings/context/SettingsContext";
 
 interface FooterProps {
   storeName?: string;
   tagline?: string;
+  appDownload?: {
+    enabled?: boolean;
+    title?: string;
+    subtitle?: string;
+    playStoreUrl?: string;
+    appStoreUrl?: string;
+  };
 }
 
 export function Footer({
-  storeName = "NEON",
-  tagline = "Thrifted culture. Curated style. Pieces with a past, made for the present.",
+  storeName,
+  tagline,
+  appDownload: propAppDownload,
 }: FooterProps) {
+  const { settings } = useSettings();
   const [email, setEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
+
+  const finalStoreName = storeName || settings?.storeName || "NEON";
+  const finalTagline =
+    tagline ||
+    settings?.tagline ||
+    "Thrifted culture. Curated style. Pieces with a past, made for the present.";
+
+  const appDownload = propAppDownload || settings?.appDownload;
+  const isAppEnabled = appDownload?.enabled !== false;
+  const playStoreUrl = appDownload?.playStoreUrl?.trim();
+  const appStoreUrl = appDownload?.appStoreUrl?.trim();
+  const hasPlayStore = Boolean(playStoreUrl);
+  const hasAppStore = Boolean(appStoreUrl);
+  const showAppSection = isAppEnabled && (hasPlayStore || hasAppStore);
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,9 +56,9 @@ export function Footer({
           {/* Brand info */}
           <div className="lg:col-span-1 space-y-4">
             <span className="text-2xl font-black uppercase tracking-tight text-black font-mono">
-              {storeName}
+              {finalStoreName}
             </span>
-            <p className="text-xs text-neutral-500 leading-relaxed max-w-xs">{tagline}</p>
+            <p className="text-xs text-neutral-500 leading-relaxed max-w-xs">{finalTagline}</p>
             <div className="flex items-center space-x-3 pt-2">
               <a
                 href="https://instagram.com"
@@ -198,6 +222,85 @@ export function Footer({
             )}
           </div>
         </div>
+
+        {/* Dynamic Mobile App Download Banner */}
+        {showAppSection && (
+          <div className="mb-12 p-6 sm:p-8 bg-neutral-950 text-white rounded-xs border border-neutral-800 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+            <div className="space-y-1.5 text-center md:text-left z-10 max-w-xl">
+              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 bg-neutral-800 border border-neutral-700 text-[10px] font-mono font-bold tracking-widest text-neutral-300 uppercase rounded-xs">
+                <span>OUR MOBILE APP</span>
+              </div>
+              <h3 className="text-base sm:text-lg font-black uppercase tracking-tight font-mono text-white">
+                {appDownload?.title || "DOWNLOAD OUR APP"}
+              </h3>
+              <p className="text-xs text-neutral-400 leading-relaxed">
+                {appDownload?.subtitle ||
+                  "Shop curated vintage streetwear on the go. Get early drop alerts & fast checkout."}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-3 z-10">
+              {hasPlayStore && (
+                <a
+                  href={playStoreUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 px-4 py-2 bg-neutral-900 hover:bg-neutral-850 border border-neutral-700 hover:border-neutral-400 transition-all rounded-sm shadow-xs group"
+                  aria-label="Download on Google Play Store"
+                >
+                  <svg className="w-6 h-6 shrink-0" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M3.609 1.814L13.793 12 3.61 22.186A2.372 2.372 0 0 1 3 20.5V3.5c0-.64.225-1.229.609-1.686z"
+                      fill="#00D2FF"
+                    />
+                    <path
+                      d="M17.202 8.591L13.793 12l3.409 3.409 3.864-2.208a1.604 1.604 0 0 0 0-2.802l-3.864-2.208z"
+                      fill="#FFCE00"
+                    />
+                    <path
+                      d="M3.61 1.814l10.183 10.186 3.409-3.409-11.836-6.763A1.97 1.97 0 0 0 3.61 1.814z"
+                      fill="#00F076"
+                    />
+                    <path
+                      d="M13.793 12L3.61 22.186c.52.441 1.22.527 1.756.222l11.836-6.763-3.409-3.409z"
+                      fill="#FF334B"
+                    />
+                  </svg>
+                  <div className="text-left flex flex-col">
+                    <span className="text-[9px] uppercase font-mono tracking-wider text-neutral-400 leading-none">
+                      GET IT ON
+                    </span>
+                    <span className="text-xs font-bold text-white tracking-tight leading-tight mt-0.5 font-sans group-hover:text-emerald-400 transition-colors">
+                      Google Play
+                    </span>
+                  </div>
+                </a>
+              )}
+
+              {hasAppStore && (
+                <a
+                  href={appStoreUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 px-4 py-2 bg-neutral-900 hover:bg-neutral-850 border border-neutral-700 hover:border-neutral-400 transition-all rounded-sm shadow-xs group"
+                  aria-label="Download on Apple App Store"
+                >
+                  <svg className="w-6 h-6 shrink-0 fill-current text-white" viewBox="0 0 24 24">
+                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.61-.75 1.04-1.8 0.92-2.85-.9.04-2 .6-2.65 1.35-.58.67-1.09 1.74-.95 2.77 1 .08 2.05-.51 2.68-1.27z" />
+                  </svg>
+                  <div className="text-left flex flex-col">
+                    <span className="text-[9px] uppercase font-mono tracking-wider text-neutral-400 leading-none">
+                      Download on the
+                    </span>
+                    <span className="text-xs font-bold text-white tracking-tight leading-tight mt-0.5 font-sans group-hover:text-emerald-400 transition-colors">
+                      App Store
+                    </span>
+                  </div>
+                </a>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Copyright */}
         <div className="border-t border-neutral-100 pt-8 text-center">

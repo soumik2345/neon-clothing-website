@@ -13,6 +13,13 @@ export interface ISetting extends Document {
   cloudinaryCloudName?: string;
   cloudinaryApiKey?: string;
   cloudinaryApiSecret?: string;
+  appDownload?: {
+    enabled?: boolean;
+    title?: string;
+    subtitle?: string;
+    playStoreUrl?: string;
+    appStoreUrl?: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,6 +41,16 @@ const SettingSchema = new Schema<ISetting>(
     cloudinaryCloudName: { type: String, default: "" },
     cloudinaryApiKey: { type: String, default: "" },
     cloudinaryApiSecret: { type: String, default: "" },
+    appDownload: {
+      enabled: { type: Boolean, default: true },
+      title: { type: String, default: "DOWNLOAD OUR APP" },
+      subtitle: {
+        type: String,
+        default: "Shop curated vintage streetwear on the go. Get instant drop alerts.",
+      },
+      playStoreUrl: { type: String, default: "" },
+      appStoreUrl: { type: String, default: "" },
+    },
   },
   { timestamps: true }
 );

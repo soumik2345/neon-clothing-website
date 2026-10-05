@@ -1,19 +1,29 @@
 import { connectDB } from "@/lib/db/mongodb";
 import { Category, ICategory } from "@/lib/db/models/Category";
 import { CategoryType } from "../types/category.types";
+import { initialCategories } from "@/lib/db/seed-data";
 
 export async function getCategories(): Promise<CategoryType[]> {
-  await connectDB();
+  try {
+    await connectDB();
 
-  const categories = await Category.find().sort({ order: 1 }).lean();
-  return categories.map((doc: unknown) => {
-    const c = doc as ICategory & { _id: unknown };
-    return {
-      ...c,
-      _id: String(c._id),
-      id: String(c._id),
-    } as CategoryType;
-  });
+    const categories = await Category.find().sort({ order: 1 }).lean();
+    if (categories && categories.length > 0) {
+      const list = categories.map((doc: unknown) => {
+        const c = doc as ICategory & { _id: unknown };
+        return {
+          ...c,
+          _id: String(c._id),
+          id: String(c._id),
+        } as CategoryType;
+      });
+      return JSON.parse(JSON.stringify(list)) as CategoryType[];
+    }
+  } catch (error) {
+    console.warn("getCategories fallback to initialCategories:", error);
+  }
+
+  return JSON.parse(JSON.stringify(initialCategories)) as CategoryType[];
 }
 
 export async function getCategoryBySlug(slug: string): Promise<CategoryType | null> {

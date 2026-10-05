@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 const JWT_SECRET_STRING = process.env.JWT_SECRET || "neon-thrifted-secret-key-super-secure-2026-auth";
 const JWT_SECRET = new TextEncoder().encode(JWT_SECRET_STRING);
@@ -40,8 +40,21 @@ export async function verifyToken(token: string): Promise<TokenPayload | null> {
 
 export async function getCurrentUser(): Promise<TokenPayload | null> {
   try {
+    // 1. Check Authorization Bearer header (Mobile App / API client)
+    try {
+      const headerList = await headers();
+      const authHeader = headerList.get("authorization");
+      if (authHeader && authHeader.toLowerCase().startsWith("bearer ")) {
+        const bearerToken = authHeader.slice(7).trim();
+        if (bearerToken) {
+          const decoded = await verifyToken(bearerToken);
+          if (decoded) return decoded;
+        }
+      }
+    } catch {}
+
+    // 2. Check cookies (Web browser)
     const cookieStore = await cookies();
-    // Check admin token first or customer token
     const adminToken = cookieStore.get("neon_admin_token")?.value;
     if (adminToken) {
       const decoded = await verifyToken(adminToken);
@@ -62,6 +75,20 @@ export async function getCurrentUser(): Promise<TokenPayload | null> {
 
 export async function getAdminSession(): Promise<TokenPayload | null> {
   try {
+    // 1. Check Authorization Bearer header (Mobile App / API client)
+    try {
+      const headerList = await headers();
+      const authHeader = headerList.get("authorization");
+      if (authHeader && authHeader.toLowerCase().startsWith("bearer ")) {
+        const bearerToken = authHeader.slice(7).trim();
+        if (bearerToken) {
+          const decoded = await verifyToken(bearerToken);
+          if (decoded && decoded.role === "admin") return decoded;
+        }
+      }
+    } catch {}
+
+    // 2. Check cookies (Web browser)
     const cookieStore = await cookies();
     const adminToken = cookieStore.get("neon_admin_token")?.value;
     if (!adminToken) return null;
@@ -75,3 +102,4 @@ export async function getAdminSession(): Promise<TokenPayload | null> {
     return null;
   }
 }
+

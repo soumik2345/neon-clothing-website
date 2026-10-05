@@ -56,6 +56,7 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         message: "Account created successfully",
+        token,
         user: {
           id: String(newUser._id),
           name: newUser.name,

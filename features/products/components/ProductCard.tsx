@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { Check, Minus, Plus } from "lucide-react";
 import { ProductType } from "../types/product.types";
 import { formatPrice as baseFormatPrice } from "@/lib/utils/utils";
 import { useCart } from "@/features/cart/context/CartContext";
@@ -15,12 +15,17 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, currency }: ProductCardProps) {
-  const { addToCart } = useCart();
+  const { cart, addToCart, updateQuantity } = useCart();
   const { formatPrice: contextFormatPrice } = useSettings();
   const [isAdding, setIsAdding] = useState(false);
   const [selectedSize] = useState<string>(
     product.sizes && product.sizes.length > 0 ? product.sizes[0] : "M"
   );
+
+  const cartItem = cart.find(
+    (item) => item.productId === (product._id || product.id || product.slug)
+  );
+  const quantityInCart = cartItem ? cartItem.quantity : 0;
 
   const displayPrice = (val: number) =>
     currency ? baseFormatPrice(val, currency) : contextFormatPrice(val);
@@ -105,23 +110,55 @@ export function ProductCard({ product, currency }: ProductCardProps) {
         </div>
       </Link>
 
-      {/* ADD TO CART Button - Exactly matching the mockup */}
+      {/* ADD TO CART or Inline Quantity Controller */}
       <div className="pt-1">
-        <button
-          type="button"
-          onClick={handleAddToCart}
-          disabled={isAdding}
-          className="w-full bg-black text-white py-2.5 px-3 text-[11px] font-bold uppercase tracking-wider hover:bg-neutral-800 transition duration-150 flex items-center justify-center gap-1.5 rounded-none"
-        >
-          {isAdding ? (
-            <>
-              <Check className="w-3.5 h-3.5 text-emerald-400" />
-              ADDED
-            </>
-          ) : (
-            "ADD TO CART"
-          )}
-        </button>
+        {quantityInCart > 0 && cartItem ? (
+          <div className="flex items-center justify-between bg-black text-white h-9 px-1 rounded-none">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                updateQuantity(cartItem.productId, cartItem.size, cartItem.quantity - 1);
+              }}
+              className="w-8 h-7 flex items-center justify-center hover:bg-neutral-800 transition cursor-pointer"
+              aria-label="Decrease quantity"
+            >
+              <Minus className="w-3.5 h-3.5" />
+            </button>
+            <span className="text-xs font-mono font-bold tracking-wider">
+              {quantityInCart} IN BAG
+            </span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                updateQuantity(cartItem.productId, cartItem.size, cartItem.quantity + 1);
+              }}
+              className="w-8 h-7 flex items-center justify-center hover:bg-neutral-800 transition cursor-pointer"
+              aria-label="Increase quantity"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            disabled={isAdding}
+            className="w-full bg-black text-white py-2.5 px-3 text-[11px] font-bold uppercase tracking-wider hover:bg-neutral-800 transition duration-150 flex items-center justify-center gap-1.5 rounded-none cursor-pointer"
+          >
+            {isAdding ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                ADDED
+              </>
+            ) : (
+              "ADD TO CART"
+            )}
+          </button>
+        )}
       </div>
     </div>
   );

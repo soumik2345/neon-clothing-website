@@ -1,6 +1,7 @@
 import { connectDB } from "@/lib/db/mongodb";
 import { Order, IOrder } from "@/lib/db/models/Order";
 import { OrderType } from "../types/order.types";
+import { createNotification } from "@/features/notifications/services/notification.service";
 
 function toPlainOrder(doc: unknown): OrderType {
   const plain = JSON.parse(JSON.stringify(doc));
@@ -87,11 +88,50 @@ export async function updateOrderStatus(
 ): Promise<OrderType | null> {
   await connectDB();
 
+  const prevOrder = await Order.findById(id).lean();
+  if (!prevOrder) return null;
+
   const updateData: Partial<OrderType> = { status };
   if (paymentStatus) updateData.paymentStatus = paymentStatus;
 
-  const updated = await Order.findByIdAndUpdate(id, updateData, { new: true }).lean();
-  if (!updated) return null;
+  const updatedDoc = await Order.findByIdAndUpdate(id, updateData, { new: true }).lean();
+  if (!updatedDoc) return null;
 
-  return toPlainOrder(updated);
+  const orderResult = toPlainOrder(updatedDoc);
+
+  // If status changed and customer has an email, trigger customer notification
+  if (prevOrder.status !== status && orderResult.customer?.email) {
+    try {
+      let notifTitle = "";
+      let notifMessage = "";
+
+      if (status === "shipped") {
+        notifTitle = `Order Shipped! 📦`;
+        notifMessage = `Your order #${orderResult.orderNumber} is on the way. Tap to track your package live.`;
+      } else if (status === "delivered") {
+        notifTitle = `Order Delivered! 🎉`;
+        notifMessage = `Your package #${orderResult.orderNumber} has been delivered successfully. Enjoy your streetwear gear!`;
+      } else if (status === "processing") {
+        notifTitle = `Order Confirmed & Processing ⚡`;
+        notifMessage = `Your order #${orderResult.orderNumber} is being prepared for dispatch.`;
+      } else if (status === "cancelled") {
+        notifTitle = `Order Cancelled ⚠️`;
+        notifMessage = `Your order #${orderResult.orderNumber} has been cancelled.`;
+      }
+
+      if (notifTitle) {
+        await createNotification({
+          title: notifTitle,
+          message: notifMessage,
+          type: "order",
+          targetUrl: `/track-order?orderId=${encodeURIComponent(orderResult.orderNumber)}`,
+          targetUserEmail: orderResult.customer.email.toLowerCase().trim(),
+        });
+      }
+    } catch (notifErr) {
+      console.error("Failed to create automated order status notification:", notifErr);
+    }
+  }
+
+  return orderResult;
 }

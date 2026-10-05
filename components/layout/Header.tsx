@@ -8,6 +8,7 @@ import { AnnouncementBar } from "./AnnouncementBar";
 import { SearchModal } from "./SearchModal";
 import { useCart } from "@/features/cart/context/CartContext";
 import { useSettings } from "@/features/settings/context/SettingsContext";
+import { NotificationBellDropdown } from "@/components/notifications/NotificationBellDropdown";
 
 interface HeaderProps {
   announcementText?: string;
@@ -167,6 +168,9 @@ export function Header({
               >
                 <Search className="w-5 h-5 stroke-[1.75]" />
               </button>
+
+              {/* Notification Bell Dropdown */}
+              <NotificationBellDropdown currentUserEmail={currentUser?.email} />
 
               {/* User / Admin Menu */}
               <div className="relative">
